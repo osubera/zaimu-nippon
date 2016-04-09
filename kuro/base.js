@@ -37,10 +37,11 @@ var Kuro_base = new function(){
     Object.defineProperties(this, {
       "value": { get: function(){ return _value; },
                     set: function(value) {
-                      _value = value ? value.toString() : this.defaultValue;
+                      _value = parseString(value, this.defaultValue, this.trim);
                     },
                     configurable: true },
-      "defaultValue": { value: "", writable: true, configurable: true }
+      "defaultValue": { value: "", writable: true, configurable: true },
+      "trim": { value: true, writable: true, configurable: true }
     });
     this.value = value;
     this.toString = function(){
@@ -48,6 +49,14 @@ var Kuro_base = new function(){
     };
   }
   this.string = KuroString;
+  
+  // 文字列パース
+  function parseString(x, fallback, trim) {
+    var v = x && x !== true ? x.toString() : fallback;
+    if(trim) { v = v.trim(); }
+    return(v);
+  }
+  this.parseString = parseString;
   
   /*############################
   KuroNumber / this.number
@@ -61,8 +70,6 @@ var Kuro_base = new function(){
     Object.defineProperties(this, {
       "value": { get: function(){ return _value; },
                     set: function(value) {
-                      //var v = parseNumber(value);
-                      //_value = v ? v : 0; 
                       _value = parseNumber(value, this.defaultValue);
                     },
                     configurable: true },
@@ -89,9 +96,12 @@ var Kuro_base = new function(){
   
   // 3桁,区切りに
   function formatNumberThousands(x) {
-    return(x.toLocaleString());
-    // toLocaleStringには、小数点以下を3桁丸めする副作用もある。
-    // locale依存
+    /* return(x.toLocaleString());
+    toLocaleStringには、小数点以下を3桁丸めする副作用がある。
+    */
+    var s = x.toString();
+    var reg = /\./.test(s) ? /\B(?=(?:\d{3})+\.)/g : /\B(?=(?:\d{3})+$)/g;
+    return(s.replace(reg, ","));
   }
   this.formatNumberThousands = formatNumberThousands;
   
@@ -113,17 +123,18 @@ var Kuro_base = new function(){
     Object.defineProperties(this, {
       "value": { get: function(){ return _value; },
                     set: function(value) {
-                      //var v = Date.parse(value);
-                      //_value = v ? new Date(v) : today(); 
-                      //_value = parseDate(value, today());
                       _value = parseDate(value, this.defaultValue);
                     } ,
                     configurable: true },
-      "defaultValue": { value: today(), writable: true, configurable: true }
+      "defaultValue": { value: today(), writable: true, configurable: true },
+      "formatSeparator": { value: "/", writable: true, configurable: true },
+      "formatMonthFillZero": { value: true, writable: true, configurable: true },
+      "formatDayFillZero": { value: true, writable: true, configurable: true }
     });
     this.value = value;
     this.toString = function(){
-      return(formatDateYmd(_value));
+      return(formatDateYmd(_value,
+        this.FormatSeparator, this.formatMonthFillZero, this.formatDayFillZero));
     };
   }
   this.date = KuroDate;
@@ -143,9 +154,17 @@ var Kuro_base = new function(){
   this.today = today;
   
   // yyyy/m/d形式に
-  function formatDateYmd(x) {
-    return(x.toLocaleDateString());
-    // locale依存
+  function formatDateYmd(x, separator, monthfill, dayfill) {
+    /*return(x.toLocaleDateString());
+    locale依存
+    safari だと漢字になる。2016年4月10日
+    */
+    var y = x.getFullYear();
+    var m = x.getMonth() + 1;
+    if(monthfill && m < 10) { m = "0" + m; }
+    var d = x.getDate();
+    if(dayfill && d < 10) { d = "0" + d; }
+    return([y, m, d].join(separator));
   }
   this.formatDateYmd = formatDateYmd;
   
@@ -155,17 +174,35 @@ var Kuro_base = new function(){
   ############################*/
   
   function KuroBoolean(value) {
+      KuroVar.call(this);
+    
+    var _value;
+    Object.defineProperties(this, {
+      "value": { get: function(){ return _value; },
+                    set: function(value) {
+                      _value = value === true ? true : 
+                        ( value === false ? false : this.defaultValue);
+                    } ,
+                    configurable: true },
+      "defaultValue": { value: false, writable: true, configurable: true },
+      "formatTrue": { value: "true", writable: true, configurable: true },
+      "formatFalse": { value: "false", writable: true, configurable: true }
+    });
+    this.value = value;
+    this.toString = function(){
+      return(_value ? this.formatTrue : this.formatFalse);
+    };
   }
   this.boolean = KuroBoolean;
   
   /*############################
-  KuroArray / this.array
+  KuroList / this.list
   一次元配列変数のコンストラクタ
   ############################*/
   
-  function KuroArray(value) {
+  function KuroList(value) {
   }
-  this.array = KuroArray;
+  this.list = KuroList;
   
   /*############################
   KuroTable / this.table
