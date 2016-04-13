@@ -6,6 +6,8 @@ Kuro_base, as a static class
 伝票システム向けの共通コンストラクタ、関数
 ############################*/
 
+define(function(){
+  
 var Kuro_base = new function(){
   
   /*############################
@@ -213,3 +215,7 @@ var Kuro_base = new function(){
   }
   this.table = KuroTable;
 };
+
+Kuro_base.version = '1.0.0';
+return(Kuro_base);
+});

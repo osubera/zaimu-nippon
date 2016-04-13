@@ -1,0 +1,34 @@
+{
+  "name": "zaimu-nippon",
+  "version": "1.0.0",
+  "description": "Accounting and Tax in Japan",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/osubera/zaimu-nippon.git"
+  },
+  "keywords": [
+    "accounting",
+    "tax",
+    "japan"
+  ],
+  "author": "Shinichiro Tomizono",
+  "license": "SEE LICENSE IN LICENSE and ALT-LICENSE",
+  "bugs": {
+    "url": "https://github.com/osubera/zaimu-nippon/issues"
+  },
+  "homepage": "https://github.com/osubera/zaimu-nippon#readme",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.4.5"
+  },
+  "dependencies": {
+    "requirejs": "^2.2.0"
+  }
+}
