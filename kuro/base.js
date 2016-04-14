@@ -216,6 +216,5 @@ var Kuro_base = new function(){
   this.table = KuroTable;
 };
 
-Kuro_base.version = '1.0.0';
-return(Kuro_base);
+return({version: '1.0.0', Kuro_base: Kuro_base});
 });
