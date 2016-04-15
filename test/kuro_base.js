@@ -5,8 +5,8 @@ requirejs.config({
   nodeRequire: require,
   baseUrl: '.'
 });
-  
-var Kuro_base = requirejs('kuro/base').Kuro_base;
+
+var Kuro_base = requirejs('kuro/base');
 
 describe('Kuro_base', function(){
   it('should be an object', function(){
