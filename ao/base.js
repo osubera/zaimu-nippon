@@ -7,6 +7,8 @@ Ao_base, as a class
 require kuro/base.js
 ############################*/
 
+define(['kuro/base'], function(Kuro_base){
+
 function Ao_base(){
   
   /*############################
@@ -46,7 +48,10 @@ function Ao_base(){
   properties
   ############################*/
   
-    Object.defineProperties(this, {
-      "xxxnendo": { value: new Nendo }
-    });
+  Object.defineProperties(this, {
+    "xxxnendo": { value: 3}//new Nendo }
+  });
 }
+
+return(Ao_base);
+});

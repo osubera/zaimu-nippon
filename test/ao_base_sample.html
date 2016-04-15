@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8" /><title class="title"></title>
+  <script src="../lib/require.js"></script>
+</head><body><h1 class="title"></h1><ol id="report"></ol>
+  <script>
+    require(['../lib/config'], function(){
+      require(['ao/base'], function(Ao_base){
+        var title = 'Ao_base sample';
+        var o1 = document.getElementsByClassName('title');
+        for(var i=0; i<o1.length; i++) {
+          o1[i].innerText = title;
+        }
+        
+        function pushLog(text) {
+          var p = document.getElementById('report');
+          var c = document.createElement('li')
+          c.innerText = text;
+          p.appendChild(c);
+        }
+        
+        var ao = new Ao_base;
+        var nen = new ao.nendo;
+        pushLog(nen.toString());
+        pushLog(nen.year.toString());
+        pushLog(nen.begin.toString());
+        
+      });
+    });
+  </script>
+</body></html>
