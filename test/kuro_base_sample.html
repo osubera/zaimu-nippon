@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8" /><title class="title"></title>
+  <script src="../lib/require.js"></script>
+</head><body><h1 class="title"></h1><ol id="report"></ol>
+  <script>
+    require(['../lib/config'], function(){
+      require(['kuro/base'], function(kuro_base){
+        var Kuro_base = kuro_base.Kuro_base;
+        var title = 'Kuro_base sample';
+        var o1 = document.getElementsByClassName('title');
+        for(var i=0; i<o1.length; i++) {
+          o1[i].innerText = title;
+        }
+        
+        function pushLog(text) {
+          var p = document.getElementById('report');
+          var c = document.createElement('li')
+          c.innerText = text;
+          p.appendChild(c);
+        }
+        
+        pushLog(new Kuro_base.var('Hello var').toString());
+        pushLog(new Kuro_base.string('Hello string').toString());
+        pushLog(new Kuro_base.number(12345678.90123).toString());
+        pushLog(new Kuro_base.date('2016/4/15').toString());
+        pushLog(new Kuro_base.boolean(true).toString());
+        pushLog(new Kuro_base.list().toString());
+        pushLog(new Kuro_base.table().toString());
+        
+        var x = new Kuro_base.number(-123456789);
+        pushLog(x.value);
+        pushLog(x.toAccountingString());
+        
+        var x = new Kuro_base.date('2016/4/15');
+        console.log(x.toString());
+        console.log(x.formatSeparator);
+      });
+    });
+  </script>
+</body></html>

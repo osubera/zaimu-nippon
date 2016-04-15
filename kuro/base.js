@@ -136,7 +136,7 @@ var Kuro_base = new function(){
     this.value = value;
     this.toString = function(){
       return(formatDateYmd(_value,
-        this.FormatSeparator, this.formatMonthFillZero, this.formatDayFillZero));
+        this.formatSeparator, this.formatMonthFillZero, this.formatDayFillZero));
     };
   }
   this.date = KuroDate;
