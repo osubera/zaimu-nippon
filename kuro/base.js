@@ -90,7 +90,7 @@ define(function(){
     // 数値パース, カンマを緩く許可
     function parseNumber(x, fallback) {
       var v = (typeof x == "string") ?
-                 Number.parseFloat(x.replace(/,/g, "")) :
+                 Number.parseFloat(x.trim().replace(/,/g, "").replace(/^△ */, "-")) :
                   x;
       return(v && v !== true ? v : fallback);
     }
@@ -103,6 +103,7 @@ define(function(){
       */
       var s = x.toString();
       var reg = /\./.test(s) ? /\B(?=(?:\d{3})+\.)/g : /\B(?=(?:\d{3})+$)/g;
+      /*            小数点     ?  小数点より前まで  :  最後まで             */
       return(s.replace(reg, ","));
     }
     this.formatNumberThousands = formatNumberThousands;
@@ -182,8 +183,8 @@ define(function(){
       Object.defineProperties(this, {
         "value": { get: function(){ return _value; },
                       set: function(value) {
-                        _value = value === true ? true : 
-                          ( value === false ? false : this.defaultValue);
+                        _value = parseBoolean(value, this.defaultValue,
+                          this.formatTrue, this.formatFalse);
                       } ,
                       configurable: true },
         "defaultValue": { value: false, writable: true, configurable: true },
@@ -196,6 +197,15 @@ define(function(){
       };
     }
     this.boolean = KuroBoolean;
+    
+    // 論理値パース, 自動変換しない, 書式文字のみ
+    function parseBoolean(x, fallback, formatT, formatF) {
+      var useDefault = x !== true && x !== false;
+      if(formatT === x && typeof formatT == 'string') { useDefault = false; x = true; }
+      if(formatF === x && typeof formatF == 'string') { useDefault = false; x = false; }
+      return(useDefault ? fallback : x);
+    }
+    this.parseBoolean = parseBoolean;
     
     /*############################
     KuroList / this.list
