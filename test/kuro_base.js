@@ -386,7 +386,7 @@ describe('Kuro_base.boolean', function(){
       it('should change the default', function(){
         x.defaultValue = true;
         expect(x.defaultValue).to.be.true;
-        x.value = undefined
+        x.value = undefined;
         expect(x.value).to.be.true;
       });
       it('should have exact boolean value', function(){
@@ -458,5 +458,103 @@ describe('Kuro_base.parseBoolean', function(){
   it('should parse formatted text', function(){
     expect(Kuro_base.parseBoolean('true', 'no bool', 'true', 'false')).to.equal(true);
     expect(Kuro_base.parseBoolean('false', 'no bool', 'true', 'false')).to.equal(false);
+  });
+});
+
+describe('Kuro_base.list', function(){
+  it('should be a function', function(){
+    expect(Kuro_base.list).to.be.a('function');
+  });
+  it('should be a constructor', function(){
+    var x = new Kuro_base.list;
+    expect(x).to.be.an('object')
+      .and.to.be.instanceOf(Kuro_base.list);
+    
+    describe('new Kuro_base.list', function(){
+      it('should have properties', function(){
+        expect(x).to.have.property('value');
+        expect(x).to.have.property('defaultValue', 0);
+        expect(x).to.have.property('type', 'number');
+        expect(x).to.have.property('length', 0);
+        //expect(x).to.have.property('keys', []);
+      });
+      it('should respond to methods', function(){
+        expect(x).to.respondTo('toString');
+        expect(x).to.respondTo('toJSON');
+        /*
+        expect(x).to.respondTo('parse');
+        expect(x).to.respondTo('item');
+        expect(x).to.respondTo('push');
+        expect(x).to.respondTo('pop');
+        */
+      });
+      /*
+      it('should be enumerable', function(){
+      });
+      */
+      it('should have default value as a blank array', function(){
+        expect(x.value).to.deep.equal([]);
+      });
+      var y = new Kuro_base.list(3);
+      var z = new Kuro_base.list(4, 'string');
+      it('should be initialized with', function(){
+        expect(y.value).to.deep.equal([0,0,0]);
+        expect(y.length).to.equal(3);
+        expect(z.value).to.deep.equal(['','','','']);
+        expect(z.length).to.equal(4);
+      });
+      it('should be independent to another instance', function(){
+        expect(x.value).not.to.deep.equal(y.value);
+        x.value = [4,5];
+        expect(x.value).to.deep.equal([4,5]);
+        expect(y.value).to.deep.equal([0,0,0]);
+      });
+      it('should change the default', function(){
+        x.defaultValue = 12;
+        expect(x.defaultValue).to.equal(12);
+        /*
+        x.push(2);
+        expect(x.value).to.deep.equal([4,5,12,12]);
+        */
+      });
+      it('should have fixed type array value', function(){
+        /*
+        x.value = ['A','long','time','ago'];
+        expect(x.value).to.deep.equal([0,0,0,0]);
+        x.value = ['1','2','3','4'];
+        expect(x.value).not.to.deep.equal(['1','2','3','4']);
+        expect(x.value).to.deep.equal([1,2,3,4]);
+        z.value = [1,2,3,4];
+        expect(z.value).not.to.deep.equal([1,2,3,4]);
+        expect(z.value).to.deep.equal(['1','2','3','4']);
+        */
+      });
+      it('should parse formatted text', function(){
+        /*
+        x.parse('1,2,3');
+        expect(x.value).to.deep.equal([1,2,3]);
+        x.parse('"A","long","time","ago"');
+        expect(x.value).to.deep.equal(['A','long','time','ago']);
+        x.parse('[1,2,3]');
+        expect(x.value).to.deep.equal([1,2,3]);
+        x.parse('["A","long","time","ago"]');
+        expect(x.value).to.deep.equal(['A','long','time','ago']);
+        x.parse('[[1,2], {c:3}]');
+        expect(x.value).to.deep.equal([0,0]);
+        */
+      });
+      it('should be stringified', function(){
+        x.value = [1,2,3];
+        expect(x.toString()).to.equal('[1,2,3]');
+        x.value = ['a','b','c'];
+        expect(x.toString()).to.equal('["a","b","c"]');
+      });
+      it('should be stringified as JSON', function(){
+        x.value = [1,2,3];
+        expect(JSON.stringify(x)).to.equal('"[1,2,3]"');
+        x.value = ['a','b','c'];
+        expect(JSON.stringify(x)).to.equal('"[\\"a\\",\\"b\\",\\"c\\"]"');
+      });
+    });
   });
 });

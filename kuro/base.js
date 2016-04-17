@@ -212,9 +212,38 @@ define(function(){
     一次元配列変数のコンストラクタ
     ############################*/
     
-    function KuroList(value) {
+    function KuroList(length, type) {
+        KuroVar.call(this);
+      
+      var _value;
+      Object.defineProperties(this, {
+        "value": { get: function(){ return _value; },
+                      set: function(value) {
+                        _value = parseList(value, this.defaultValue, this.type);
+                      } ,
+                      configurable: true },
+        "defaultValue": { value: 0, writable: true, configurable: true },
+        "type": { value: "number", writable: true, configurable: true },
+        "length": { get: function(){ return _value.length; },
+                       configurable: true }
+      });
+      this.length = length;
+      this.type = type;
+      this.value = [];
+      this.toString = function(){
+        return(JSON.stringify(_value));
+      };
+      this.toJSON = this.toString;
     }
     this.list = KuroList;
+    
+    // リストパース
+    function parseList(x, fallback, type) {
+      var v = Array.isArray(x) ? x : 
+        typeof x == 'string' ? x.split(',') : x;
+      return(v && v !== true ? v : []);
+    }
+    this.parseList = parseList;
     
     /*############################
     KuroTable / this.table
