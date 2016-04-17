@@ -216,34 +216,81 @@ define(function(){
         KuroVar.call(this);
       
       var _value;
+      var _type;
+      
+      // リストパース
+      function _parseList(x, co, fallback) {
+        var v = x == undefined ? [] : Array.isArray(x) ? x : [x];
+        var n = v.length;
+//        var co = this.factory;
+        var y = new Array(n);
+        for(var i = 0; i < n; i++) {
+          var w = new co;
+          w.defaultValue = fallback;
+          w.value = v[i];
+          y[i] = w;
+        }
+        return(y);
+        //var v = Array.isArray(x) ? x : 
+        //  typeof x == 'string' ? x.split(',') : x;
+        //return(v && v !== true ? v : []);
+      }
+      
       Object.defineProperties(this, {
-        "value": { get: function(){ return _value; },
+        "value": { get: function() {
+                        var v = [];
+                        for(var i = 0; i < _value.length; i++) {
+                          v.push(_value[i].value);
+                        }
+                        return v; 
+                      },
                       set: function(value) {
-                        _value = parseList(value, this.defaultValue, this.type);
-                      } ,
+//                        _value = parseList(value, this.defaultValue, this.type);
+                        _value = _parseList(value, this.factory, this.defaultValue);
+                      },
                       configurable: true },
         "defaultValue": { value: 0, writable: true, configurable: true },
-        "type": { value: "number", writable: true, configurable: true },
+        "defaultType": { value: 'number', writable: true, configurable: true },
+        "type": { get: function(){ return _type; }, configurable: true },
         "length": { get: function(){ return _value.length; },
-                       configurable: true }
+                       configurable: true },
+        "factories": { value: {
+                                       number: Kuro_base.number,
+                                       string: Kuro_base.string
+                                     },
+                           writable: true, configurable: true },
+        "factory": { get: function(){ return this.factories[_type]; }, configurable: true }
       });
-      this.length = length;
-      this.type = type;
-      this.value = [];
+      this.reset = function(length, type){
+        var n = Number.parseInt(length);
+        if(!n) { n = 0; }
+        _type =type;
+        //var co = this.factories[type];
+        if(!this.factory) {
+          _type = this.defaultType;
+          //co = this.factories[_type];
+        }
+        var co = this.factory;
+        var v = this.defaultValue;
+        _value = new Array(n);
+        for(var i = 0; i < n; i++) {
+          _value[i] = new co(v);
+        }
+      }
+      this.reset(length, type);
+      
       this.toString = function(){
+//        _value 本体でなく、_value[i].value を要素にした配列を使う。
+//        この操作を何度もやっているので、ちょっと工夫する
+//        というか、個々のクラスで toJSONがあれば、このままで動くのか？
         return(JSON.stringify(_value));
       };
       this.toJSON = this.toString;
+      // toJson は、個々の原始クラスでも定義して、ネスト構造で動かすのがいい。
+      this.parse = function(){
+      }
     }
     this.list = KuroList;
-    
-    // リストパース
-    function parseList(x, fallback, type) {
-      var v = Array.isArray(x) ? x : 
-        typeof x == 'string' ? x.split(',') : x;
-      return(v && v !== true ? v : []);
-    }
-    this.parseList = parseList;
     
     /*############################
     KuroTable / this.table

@@ -473,31 +473,44 @@ describe('Kuro_base.list', function(){
     describe('new Kuro_base.list', function(){
       it('should have properties', function(){
         expect(x).to.have.property('value');
-        expect(x).to.have.property('defaultValue', 0);
         expect(x).to.have.property('type', 'number');
         expect(x).to.have.property('length', 0);
+        expect(x).to.have.property('defaultValue', 0);
+        expect(x).to.have.property('defaultType', 'number');
+        expect(x).to.have.property('factories');
+        expect(x).to.have.property('factory');
         //expect(x).to.have.property('keys', []);
       });
       it('should respond to methods', function(){
         expect(x).to.respondTo('toString');
         expect(x).to.respondTo('toJSON');
-        /*
+        expect(x).to.respondTo('reset');
         expect(x).to.respondTo('parse');
+        /*
         expect(x).to.respondTo('item');
-        expect(x).to.respondTo('push');
-        expect(x).to.respondTo('pop');
+        expect(x).to.respondTo('append');
+        expect(x).to.respondTo('remove');
+        expect(x).to.respondTo('appendAt');
+        expect(x).to.respondTo('removeAt');
         */
       });
       /*
       it('should be enumerable', function(){
       });
       */
+      it('should deny setting values to length, type and factory properties', function(){
+      });
+      it('should have reset() method to set length and type properties', function(){
+      });
+      it('should have default factory as a constructor', function(){
+        expect(x.factory).to.be.a('function');
+      });
       it('should have default value as a blank array', function(){
         expect(x.value).to.deep.equal([]);
       });
       var y = new Kuro_base.list(3);
       var z = new Kuro_base.list(4, 'string');
-      it('should be initialized with', function(){
+      it('should be initialized by length and type', function(){
         expect(y.value).to.deep.equal([0,0,0]);
         expect(y.length).to.equal(3);
         expect(z.value).to.deep.equal(['','','','']);
@@ -509,27 +522,11 @@ describe('Kuro_base.list', function(){
         expect(x.value).to.deep.equal([4,5]);
         expect(y.value).to.deep.equal([0,0,0]);
       });
-      it('should change the default', function(){
-        x.defaultValue = 12;
-        expect(x.defaultValue).to.equal(12);
-        /*
-        x.push(2);
-        expect(x.value).to.deep.equal([4,5,12,12]);
-        */
+      it('should accept value as an array or a basic type', function(){
       });
-      it('should have fixed type array value', function(){
-        /*
-        x.value = ['A','long','time','ago'];
-        expect(x.value).to.deep.equal([0,0,0,0]);
-        x.value = ['1','2','3','4'];
-        expect(x.value).not.to.deep.equal(['1','2','3','4']);
-        expect(x.value).to.deep.equal([1,2,3,4]);
-        z.value = [1,2,3,4];
-        expect(z.value).not.to.deep.equal([1,2,3,4]);
-        expect(z.value).to.deep.equal(['1','2','3','4']);
-        */
+      it('should not parse value', function(){
       });
-      it('should parse formatted text', function(){
+      it('should parse string through parse() method', function(){
         /*
         x.parse('1,2,3');
         expect(x.value).to.deep.equal([1,2,3]);
@@ -543,6 +540,26 @@ describe('Kuro_base.list', function(){
         expect(x.value).to.deep.equal([0,0]);
         */
       });
+      it('should have same type items', function(){
+        /*
+        x.value = ['A','long','time','ago'];
+        expect(x.value).to.deep.equal([0,0,0,0]);
+        x.value = ['1','2','3','4'];
+        expect(x.value).not.to.deep.equal(['1','2','3','4']);
+        expect(x.value).to.deep.equal([1,2,3,4]);
+        z.value = [1,2,3,4];
+        expect(z.value).not.to.deep.equal([1,2,3,4]);
+        expect(z.value).to.deep.equal(['1','2','3','4']);
+        */
+      });
+      it('should change the default', function(){
+        x.defaultValue = 12;
+        expect(x.defaultValue).to.equal(12);
+        /*
+        x.push(2);
+        expect(x.value).to.deep.equal([4,5,12,12]);
+        */
+      });
       it('should be stringified', function(){
         x.value = [1,2,3];
         expect(x.toString()).to.equal('[1,2,3]');
@@ -554,6 +571,10 @@ describe('Kuro_base.list', function(){
         expect(JSON.stringify(x)).to.equal('"[1,2,3]"');
         x.value = ['a','b','c'];
         expect(JSON.stringify(x)).to.equal('"[\\"a\\",\\"b\\",\\"c\\"]"');
+      });
+      it('should have constructor factories', function(){
+      });
+      it('should have updatable factories', function(){
       });
     });
   });
