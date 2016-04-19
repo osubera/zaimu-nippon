@@ -142,9 +142,7 @@ define(function(){
         return(formatDateYmd(this.value,
           this.formatSeparator, this.formatMonthFillZero, this.formatDayFillZero));
       };
-      this.toJSON = function(){
-        return(this.toString());
-      }
+      this.toJSON = this.toString;
     }
     this.date = KuroDate;
     
