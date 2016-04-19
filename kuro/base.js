@@ -24,6 +24,9 @@ define(function(){
         "defaultValue": { value: undefined, writable: true, configurable: true }
       });
       this.value = value;
+      this.toJSON = function(){
+        return(this.value);
+      };
     }
     this.var = KuroVar;
     
@@ -47,7 +50,7 @@ define(function(){
       });
       this.value = value;
       this.toString = function(){
-        return(_value);
+        return(this.value);
       };
     }
     this.string = KuroString;
@@ -79,10 +82,10 @@ define(function(){
       });
       this.value = value;
       this.toString = function(){
-        return(formatNumberThousands(_value));
+        return(formatNumberThousands(this.value));
       };
       this.toAccountingString = function(){
-        return(formatNumberTriangle(_value));
+        return(formatNumberTriangle(this.value));
       };
     }
     this.number = KuroNumber;
@@ -136,9 +139,12 @@ define(function(){
       });
       this.value = value;
       this.toString = function(){
-        return(formatDateYmd(_value,
+        return(formatDateYmd(this.value,
           this.formatSeparator, this.formatMonthFillZero, this.formatDayFillZero));
       };
+      this.toJSON = function(){
+        return(this.toString());
+      }
     }
     this.date = KuroDate;
     
@@ -193,7 +199,7 @@ define(function(){
       });
       this.value = value;
       this.toString = function(){
-        return(_value ? this.formatTrue : this.formatFalse);
+        return(this.value ? this.formatTrue : this.formatFalse);
       };
     }
     this.boolean = KuroBoolean;
@@ -213,7 +219,7 @@ define(function(){
     ############################*/
     
     function KuroList(length, type) {
-        KuroVar.call(this);
+        //KuroVar.call(this);
       
       var _value;
       var _type;
@@ -283,10 +289,12 @@ define(function(){
 //        _value 本体でなく、_value[i].value を要素にした配列を使う。
 //        この操作を何度もやっているので、ちょっと工夫する
 //        というか、個々のクラスで toJSONがあれば、このままで動くのか？
-        return(JSON.stringify(_value));
+//        return(JSON.stringify(this.value));
+        return(this.value.toString());
       };
-      this.toJSON = this.toString;
-      // toJson は、個々の原始クラスでも定義して、ネスト構造で動かすのがいい。
+      this.toJSON = function(){
+        return(this.value);
+      }
       this.parse = function(){
       }
     }
@@ -304,3 +312,132 @@ define(function(){
   
   return(Kuro_base);
 });
+/*
+
+KuroRow が必要。
+Hash タイプ。
+
+
+簡単な処理をつみあげていく。
+
+reset系とupdate系を明確に区別する。
+
+.resetByLength
+.resetByValue
+
+リセット系は上記のみか。
+
+
+.updateValues
+.updateValueAt
+
+updateValues は、
+必ずlength長の array を指定し、
+undefined な箇所は無視して、元のデータを保持する。
+つまり部分更新に使える。
+
+
+.vale= は、
+update 系で、
+現在のlength, type を維持したまま、入力データを展開する。
+文字パースはせず、
+undefined -> すべてを初期値相当に。
+それ以外は、
+array だろうがそうでなかろうが、
+繰り返しまたは切り捨てによって、
+必要なlength のデータを得て、それで update する。
+
+
+簡単な処理をする便利関数やメソッドを用意する。
+
+.forEach(function(element){})
+_value[i].value を個々に関数処理した結果のarrayを返す。
+
+repeatArray(array, length)
+arrayを繰り返したり切り詰めたりして、指定lengthのものを返す。
+単一データが来れば、それの繰り返し配列。
+
+.increase(number)
+.decrease(number)
+.updateLength(length)
+
+現在のデータをできるだけ保持したまま、
+lengthを変更する。
+増減は必ず末尾を処理。
+
+.item(at, fn)
+指定位置の値など。
+
+.at(from, to, fn)
+指定範囲の値の配列を返す。
+to省略だと、
+from 位置の値を単一で返す。
+from, to に同じ値だと、
+from 位置の値が入った配列を返す。
+
+.select(array, fn)
+[true, false,,,] の配列をもらって、
+true 箇所だけを抽出したデータ配列を返す。
+標準は .value を使うが、
+fn でカスタマイズして、
+toString() を返したり、何か計算した結果を返したりできる。
+
+
+.filter(fn, fn)
+関数による条件抽出。
+
+
+.move(array)
+[true, false,,,] の配列をもらって、
+true 箇所だけを値を前につめて、残りは初期値とする。
+
+
+.clearItem(at)
+.clearAt(from,to)
+
+場所を指定して、値の消去。初期値にする。
+
+
+
+
+
+parseCsv(string, delimiter)
+刻んだ文字を返す。
+型変換はしない。個々のクラスの仕事。
+
+parseJson(string)
+前後の[]を取って、parseCsvすればいい。
+
+
+
+flatArray(array)
+高次の配列を再帰的にばらして単純配列にする。
+
+
+
+quote(string, quotation)
+quotationで囲む。
+必要なら ¥ でエスケープする。
+¥¥も
+
+unquote(string, quotation)
+quotation囲みをはずす。
+¥ エスケープを元に戻す。
+¥¥も
+囲まれてないなら何もしない。
+quotation指定がないなら、'"両方を探し、一方を実行する。
+
+
+
+
+
+toJSON は、基礎クラスにつける。
+文字でなく値を返すのでは？
+
+数値の 0 を、
+"0" 表記するのか、
+"" ブランクとするのか、
+っていう選択肢が必要だろう。
+
+
+*/

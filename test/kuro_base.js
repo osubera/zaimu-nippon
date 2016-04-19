@@ -44,6 +44,9 @@ describe('Kuro_base.var', function(){
         expect(x).to.have.property('value', undefined);
         expect(x).to.have.property('defaultValue', undefined);
       });
+      it('should respond to methods', function(){
+        expect(x).to.respondTo('toJSON');
+      });
       var y = new Kuro_base.var('anything');
       it('should be initialized with', function(){
         expect(y).to.have.property('value', 'anything');
@@ -75,6 +78,7 @@ describe('Kuro_base.string', function(){
       });
       it('should respond to methods', function(){
         expect(x).to.respondTo('toString');
+        expect(x).to.respondTo('toJSON');
       });
       var y = new Kuro_base.string('any string');
       it('should be initialized with', function(){
@@ -98,6 +102,9 @@ describe('Kuro_base.string', function(){
       });
       it('should be stringified', function(){
         expect(x.toString()).to.equal('1,2,3');
+      });
+      it('should be stringified as JSON', function(){
+        expect(x.toJSON()).to.equal('1,2,3');
       });
       it('should enable/disable trim', function(){
         x.value = '    A long time ago,     ';
@@ -184,6 +191,9 @@ describe('Kuro_base.number', function(){
         expect(x.toString()).to.equal('-87,654,321');
         expect(x.toAccountingString()).to.equal('△ 87,654,321');
         expect(y.toString()).to.equal('123,456,789.0123');
+      });
+      it('should be stringified as JSON', function(){
+        expect(x.toJSON()).to.equal(-87654321);
       });
     });
   });
@@ -300,6 +310,12 @@ describe('Kuro_base.date', function(){
         x.formatMonthFillZero = true;
         expect(x.formatMonthFillZero).to.equal.true;
         expect(x.toString()).to.equal('2012-03-1');
+      });
+      it('should be stringified as JSON', function(){
+        x.formatSeparator = '/';
+        x.formatMonthFillZero = false;
+        x.formatDayFillZero = false;
+        expect(x.toJSON()).to.equal('2012/3/1');
       });
     });
   });
@@ -438,6 +454,9 @@ describe('Kuro_base.boolean', function(){
         x.formatFalse = '×';
         expect(x.toString()).to.equal('×');
       });
+      it('should be stringified as JSON', function(){
+        expect(x.toJSON()).to.equal(false);
+      });
     });
   });
 });
@@ -568,9 +587,9 @@ describe('Kuro_base.list', function(){
       });
       it('should be stringified as JSON', function(){
         x.value = [1,2,3];
-        expect(JSON.stringify(x)).to.equal('"[1,2,3]"');
+        expect(JSON.stringify(x)).to.equal('[1,2,3]');
         x.value = ['a','b','c'];
-        expect(JSON.stringify(x)).to.equal('"[\\"a\\",\\"b\\",\\"c\\"]"');
+        expect(JSON.stringify(x)).to.equal('["a","b","c"]');
       });
       it('should have constructor factories', function(){
       });
