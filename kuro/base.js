@@ -259,8 +259,8 @@ define(function(){
         "length": { get: function(){ return _value.length; },
                        configurable: true },
         "factories": { value: {
-                                       number: Kuro_base.number,
-                                       string: Kuro_base.string
+                                       number: KuroNumber,
+                                       string: KuroString
                                      },
                            writable: true, configurable: true },
         "factory": { get: function(){ return this.factories[_type]; }, configurable: true }
