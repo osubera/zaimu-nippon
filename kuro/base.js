@@ -260,20 +260,45 @@ define(function(){
                        configurable: true },
         "factories": { value: {
                                        number: KuroNumber,
-                                       string: KuroString
-                                     },
-                           writable: true, configurable: true },
-        "factory": { get: function(){ return this.factories[_type]; }, configurable: true }
+                                       string: KuroString,
+                                       date: KuroDate,
+                                       boolean: KuroBoolean
+                           },
+                           writable: true, configurable: true
+                         },
+        "factory": { get: function(){ return this.factories[_type]; }, configurable: true },
+        "keys": { get: function(){
+                        var k = []
+                        for(i = 0; i < _value.length; i++) {
+                          k.push(i);
+                        }
+                        return k;
+                      }, 
+                      enumerable: true, configurable: true
+                    }
       });
-      this.reset = function(length, type){
+      
+      function Each(fn) {
+        // 内部変数 _value を直接呼ぶので継承できない。
+        // fn = function(element)
+        var n = _value.length;
+        var v = [];
+        for(var i = 0; i < n; i++) {
+          v.push(fn(_value[i]));
+        }
+        return(v);
+      }
+      this.each = Each;
+      
+      // Reset系は、内部objectをすべて作りなおす、総入れ替え。
+      
+      function ResetByLength(length, type) {
+        // 内部変数 _type, _value を直接変更するので継承できない。
         var n = Number.parseInt(length);
         if(!n) { n = 0; }
-        _type =type;
-        //var co = this.factories[type];
-        if(!this.factory) {
-          _type = this.defaultType;
-          //co = this.factories[_type];
-        }
+        _type = type;
+        if(!this.factory) { _type = this.defaultType; }
+        
         var co = this.factory;
         var v = this.defaultValue;
         _value = new Array(n);
@@ -281,13 +306,64 @@ define(function(){
           _value[i] = new co(v);
         }
       }
-      this.reset(length, type);
+      this.resetByLength = ResetByLength;
+      this.resetByLength(length, type);
+      
+      function ResetByValues(value) {
+        // 内部変数 _type, _value を直接変更するので継承できない。
+        var v = Array.isArray(value) ? value : [value];
+        // value: Arrayまたは単一値、単一値は要素1のArrayとみなす。
+        _type = typeof v[0];
+        // 先頭要素の型から全体の型を決める。
+        var co = this.factory;
+        if(co == undefined) {
+          // factories登録の無い型の場合、全体を[]で初期化する。
+          _type = this.defaultType;
+          _value = [];
+          return;
+        }
+        var n = v.length;
+        _value = new Array(n);
+        for(var i = 0; i < n; i++) {
+          _value[i] = new co(v[i]);
+        }
+      }
+      this.resetByValues = ResetByValues;
+      
+      // Update系は、内部objectをできるだけ保持し値だけを入れ替える。
+      
+      function UpdateValues(value) {
+        // 内部変数 _value を直接呼ぶので継承できない。
+        if(Array.isArray(value)) {
+          var n = Math.min(_value.length, value.length);
+          for(var i = 0; i < n; i++) {
+            if(value[i] != undefined) {
+              // undefined な要素では上書きしない。
+              _value[i].value = value[i];
+            }
+          }
+        }
+        else {
+          // 単一値なら、undefinedも含め、すべてを同一値で埋める。
+          var n = _value.length;
+          for(var i = 0; i < n; i++) {
+            _value[i].value = value;
+          }
+        }
+      }
+      this.updateValues = UpdateValues;
+      
+      function UpdateValueAt(index, value) {
+        // 内部変数 _value を直接呼ぶので継承できない。
+        var id = Number.parseInt(index);
+        if(id < 0 || id >= _value.length) {
+          throw new RangeError('array index out of range');
+        }
+        _value[id].value = value;
+      }
+      this.updateValueAt = UpdateValueAt;
       
       this.toString = function(){
-//        _value 本体でなく、_value[i].value を要素にした配列を使う。
-//        この操作を何度もやっているので、ちょっと工夫する
-//        というか、個々のクラスで toJSONがあれば、このままで動くのか？
-//        return(JSON.stringify(this.value));
         return(this.value.toString());
       };
       this.toJSON = function(){
@@ -298,30 +374,83 @@ define(function(){
     }
     this.list = KuroList;
     
+    function lengthenArray(array, length) {
+      var a = Array.isArray(array) ? array : [array];
+      var n = a.length;
+      var v = [];
+      for(var i = 0; i < length; i++) {
+        v.push(a[i % n]);
+      }
+      return(v);
+    }
+    this.lengthenArray = lengthenArray;
+    
+    function flattenArray(array) {
+      if(!Array.isArray(array)) {
+        return(array); // terminator
+      }
+      var p = []
+      for(var i = 0; i < array.length; i++) {
+        if(Array.isArray(array[i])) {
+          var c = flattenArray(array[i]);
+          for(j = 0; j < c.length; j++) {
+            p.push(c[j]);
+          }
+        }
+        else {
+          p.push(array[i]);
+        }
+      }
+      return(p);
+    }
+    this.flattenArray = flattenArray;
+    
+    function quoteString(text, quotation) {
+    }
+    this.quoteString = quoteString;
+    
+    function unquoteString(text) {
+    }
+    this.unquoteString = unquoteString;
+    
     /*############################
     KuroTable / this.table
-    二次元表データベース変数のコンストラクタ
+    二次元表（列優先）データベース変数のコンストラクタ
     ############################*/
     
     function KuroTable(value) {
     }
     this.table = KuroTable;
+    
+    /*############################
+    KuroRow / this.row
+    一次元ハッシュ変数のコンストラクタ
+    ############################*/
+    
+    function KuroRow(value) {
+    }
+    this.row = KuroRow;
+    
+    /*############################
+    KuroRows / this.rows
+    二次元表（行優先）データベース変数のコンストラクタ
+    ############################*/
+    
+    function KuroRow(value) {
+    }
+    this.row = KuroRow;
   };
   
   return(Kuro_base);
 });
 /*
 
-KuroRow が必要。
-Hash タイプ。
-
-
 簡単な処理をつみあげていく。
 
 reset系とupdate系を明確に区別する。
 
 .resetByLength
-.resetByValue
+.resetByValues
 
 リセット系は上記のみか。
 
@@ -335,7 +464,7 @@ undefined な箇所は無視して、元のデータを保持する。
 つまり部分更新に使える。
 
 
-.vale= は、
+.value= は、
 update 系で、
 現在のlength, type を維持したまま、入力データを展開する。
 文字パースはせず、
@@ -348,7 +477,7 @@ array だろうがそうでなかろうが、
 
 簡単な処理をする便利関数やメソッドを用意する。
 
-.forEach(function(element){})
+.each(function(element){})
 _value[i].value を個々に関数処理した結果のarrayを返す。
 
 repeatArray(array, length)
@@ -399,11 +528,11 @@ true 箇所だけを値を前につめて、残りは初期値とする。
 
 
 
-parseCsv(string, delimiter)
+parseCSV(string, delimiter)
 刻んだ文字を返す。
 型変換はしない。個々のクラスの仕事。
 
-parseJson(string)
+parseJSON(string)
 前後の[]を取って、parseCsvすればいい。
 
 
@@ -429,13 +558,12 @@ quotation指定がないなら、'"両方を探し、一方を実行する。
 
 
 
-toJSON は、基礎クラスにつける。
-文字でなく値を返すのでは？
 
 数値の 0 を、
 "0" 表記するのか、
 "" ブランクとするのか、
 っていう選択肢が必要だろう。
+この際、ブランクからのパースも必要。
 
 
 */

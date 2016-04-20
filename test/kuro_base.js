@@ -27,6 +27,10 @@ describe('Kuro_base', function(){
     expect(Kuro_base).itself.to.respondTo('formatNumberThousands');
     expect(Kuro_base).itself.to.respondTo('formatNumberTriangle');
     expect(Kuro_base).itself.to.respondTo('formatDateYmd');
+    expect(Kuro_base).itself.to.respondTo('lengthenArray');
+    expect(Kuro_base).itself.to.respondTo('flattenArray');
+    expect(Kuro_base).itself.to.respondTo('quoteString');
+    expect(Kuro_base).itself.to.respondTo('unquoteString');
   });
 });
 
@@ -498,33 +502,133 @@ describe('Kuro_base.list', function(){
         expect(x).to.have.property('defaultType', 'number');
         expect(x).to.have.property('factories');
         expect(x).to.have.property('factory');
-        //expect(x).to.have.property('keys', []);
+        expect(x).to.have.property('keys');
       });
       it('should respond to methods', function(){
         expect(x).to.respondTo('toString');
         expect(x).to.respondTo('toJSON');
-        expect(x).to.respondTo('reset');
-        expect(x).to.respondTo('parse');
-        /*
+        expect(x).to.respondTo('resetByLength');
+        expect(x).to.respondTo('resetByValues');
+        expect(x).to.respondTo('updateValues');
+        expect(x).to.respondTo('updateValueAt');
+        expect(x).to.respondTo('updateLength');
+        expect(x).to.respondTo('increase');
+        expect(x).to.respondTo('decrease');
+        expect(x).to.respondTo('move');
+        expect(x).to.respondTo('clearItem');
+        expect(x).to.respondTo('clearAt');
         expect(x).to.respondTo('item');
-        expect(x).to.respondTo('append');
-        expect(x).to.respondTo('remove');
-        expect(x).to.respondTo('appendAt');
-        expect(x).to.respondTo('removeAt');
+        expect(x).to.respondTo('at');
+        expect(x).to.respondTo('select');
+        expect(x).to.respondTo('filter');
+        expect(x).to.respondTo('each');
+        expect(x).to.respondTo('parseCSV');
+        expect(x).to.respondTo('parseJSON');
+      });
+      it('should be enumerable', function(){
+        expect(x.propertyIsEnumerable('keys')).to.be.true;
+      });
+      it('should deny setting values to keys, length, type and factory properties', function(){
+        x.keys = undefined;
+        expect(x.keys).not.to.equal(undefined);
+        x.length = 12;
+        expect(x.length).not.to.equal(12);
+        x.type = 'date';
+        expect(x.type).not.to.equal('date');
+        x.factory = Date;
+        expect(x.factory).not.to.equal(Date);
+      });
+      it('should have resetByLength() method to set length and type properties', function(){
+        x.resetByLength(5);
+        expect(x.length).to.equal(5);
+        expect(x.type).to.equal(x.defaultType);
+        expect(x.value).to.deep.equal([0,0,0,0,0]);
+      });
+      it('should have resetByValues() method to set values', function(){
+        x.resetByValues(['A','long','time','ago']);
+        expect(x.length).to.equal(4);
+        expect(x.type).to.equal('string');
+        expect(x.value).to.deep.equal(['A','long','time','ago']);
+        x.resetByValues('in,a,galaxy');
+        expect(x.length).to.equal(1);
+        expect(x.type).to.equal('string');
+        expect(x.value).to.deep.equal(['in,a,galaxy']);
+        x.resetByValues(undefined);
+        expect(x.length).to.equal(0);
+        expect(x.type).to.equal(x.defaultType);
+        expect(x.value).to.deep.equal([]);
+      });
+      it('should have updateValues() method to set values', function(){
+        x.resetByValues([10,20,30,40]);
+        x.updateValues([11,12,13,14]);
+        expect(x.value).to.deep.equal([11,12,13,14]);
+        x.updateValues([10,11,12,13,14]);
+        expect(x.value).to.deep.equal([10,11,12,13]);
+        x.updateValues([15,,17]);
+        expect(x.value).to.deep.equal([15,11,17,13]);
+        x.updateValues(['21']);
+        expect(x.value).to.deep.equal([21,11,17,13]);
+        x.updateValues(22);
+        expect(x.value).to.deep.equal([22,22,22,22]);
+      });
+      it('should have updateValueAt() method to set values', function(){
+        x.resetByValues([100,200,300]);
+        x.updateValueAt(2,400);
+        expect(x.value).to.deep.equal([100,200,400]);
+      });
+      it('should chage length', function(){
+        // increase, decrease, updateLength
+      });
+      it('should relocate values', function(){
+        // move
+      });
+      it('should set values back to default', function(){
+        // clearItem, clearItemAt
+      });
+      it('should parse string through methods', function(){
+        // parseCSV, parseJSON
+        /*
+        x.parse('1,2,3');
+        expect(x.value).to.deep.equal([1,2,3]);
+        x.parse('"A","long","time","ago"');
+        expect(x.value).to.deep.equal(['A','long','time','ago']);
+        x.parse('[1,2,3]');
+        expect(x.value).to.deep.equal([1,2,3]);
+        x.parse('["A","long","time","ago"]');
+        expect(x.value).to.deep.equal(['A','long','time','ago']);
+        x.parse('[[1,2], {c:3}]');
+        expect(x.value).to.deep.equal([0,0]);
         */
       });
-      /*
-      it('should be enumerable', function(){
+      it('should accept property value as an array or a basic type', function(){
+        // value =
       });
-      */
-      it('should deny setting values to length, type and factory properties', function(){
+      it('should not parse value through property', function(){
+        // value =
       });
-      it('should have reset() method to set length and type properties', function(){
+      it('should reset items by these methods', function(){
+        // resetByLength, resetByValues
+      });
+      it('should not reset items by these methods', function(){
+        // values =, updateValues, updateValueAt, 
+        // updateLength, increase, decrease
+        // move, clearItem, clearItemAt
+        // parseCSV, parseJSON
+      });
+      it('should extract specified values', function(){
+        // item, at, select, filter
+      });
+      it('should do loop for each item', function(){
+        x.resetByValues([1,3,5]);
+        x.each(function(element){ element.value++; });
+        expect(x.value).to.deep.equal([2,4,6]);
+        expect(x.each(function(element){ return(2 * element.value); })).to.deep.equal([4,8,12]);
       });
       it('should have default factory as a constructor', function(){
         expect(x.factory).to.be.a('function');
       });
       it('should have default value as a blank array', function(){
+        var x = new Kuro_base.list;
         expect(x.value).to.deep.equal([]);
       });
       var y = new Kuro_base.list(3);
@@ -541,25 +645,7 @@ describe('Kuro_base.list', function(){
         expect(x.value).to.deep.equal([4,5]);
         expect(y.value).to.deep.equal([0,0,0]);
       });
-      it('should accept value as an array or a basic type', function(){
-      });
-      it('should not parse value', function(){
-      });
-      it('should parse string through parse() method', function(){
-        /*
-        x.parse('1,2,3');
-        expect(x.value).to.deep.equal([1,2,3]);
-        x.parse('"A","long","time","ago"');
-        expect(x.value).to.deep.equal(['A','long','time','ago']);
-        x.parse('[1,2,3]');
-        expect(x.value).to.deep.equal([1,2,3]);
-        x.parse('["A","long","time","ago"]');
-        expect(x.value).to.deep.equal(['A','long','time','ago']);
-        x.parse('[[1,2], {c:3}]');
-        expect(x.value).to.deep.equal([0,0]);
-        */
-      });
-      it('should have same type items', function(){
+      it('should generate same type items', function(){
         /*
         x.value = ['A','long','time','ago'];
         expect(x.value).to.deep.equal([0,0,0,0]);
@@ -571,7 +657,7 @@ describe('Kuro_base.list', function(){
         expect(z.value).to.deep.equal(['1','2','3','4']);
         */
       });
-      it('should change the default', function(){
+      it('should change the default value', function(){
         x.defaultValue = 12;
         expect(x.defaultValue).to.equal(12);
         /*
@@ -579,16 +665,30 @@ describe('Kuro_base.list', function(){
         expect(x.value).to.deep.equal([4,5,12,12]);
         */
       });
-      it('should be stringified', function(){
-        x.value = [1,2,3];
-        expect(x.toString()).to.equal('[1,2,3]');
-        x.value = ['a','b','c'];
-        expect(x.toString()).to.equal('["a","b","c"]');
+      it('should change the default type', function(){
+      });
+      it('should have builtin factories', function(){
+      });
+      it('should change factories', function(){
+      });
+      it('should return ordinal numbers as keys', function(){
+        x.resetByLength(4);
+        expect(x.keys).to.deep.equal([0,1,2,3]);
+        x.resetByLength(8);
+        expect(x.keys).to.deep.equal([0,1,2,3,4,5,6,7]);
+      });
+      it('should be stringified as CSV', function(){
+        x.resetByValues([1,2,3]);
+        expect(x.toString()).to.equal('1,2,3');
+        x.resetByValues(['a','b','c']);
+        expect(x.toString()).to.equal("a,b,c");
       });
       it('should be stringified as JSON', function(){
-        x.value = [1,2,3];
+        x.resetByValues([1,2,3]);
+        expect(x.toJSON()).to.deep.equal([1,2,3]);
         expect(JSON.stringify(x)).to.equal('[1,2,3]');
-        x.value = ['a','b','c'];
+        x.resetByValues(['a','b','c']);
+        expect(x.toJSON()).to.deep.equal(["a","b","c"]);
         expect(JSON.stringify(x)).to.equal('["a","b","c"]');
       });
       it('should have constructor factories', function(){
@@ -596,5 +696,28 @@ describe('Kuro_base.list', function(){
       it('should have updatable factories', function(){
       });
     });
+  });
+});
+
+describe('Kuro_base.lengthenArray', function(){
+  it('should be a function', function(){
+    expect(Kuro_base.lengthenArray).to.be.a('function');
+  });
+  it('should return array with repeated value within specified length', function(){
+    expect(Kuro_base.lengthenArray([1,2], 5)).to.deep.equal([1,2,1,2,1]);
+    expect(Kuro_base.lengthenArray(3, 4)).to.deep.equal([3,3,3,3]);
+    expect(Kuro_base.lengthenArray([1,2,3,4], 3)).to.deep.equal([1,2,3]);
+  });
+});
+
+describe('Kuro_base.flattenArray', function(){
+  it('should be a function', function(){
+    expect(Kuro_base.flattenArray).to.be.a('function');
+  });
+  it('should return simplified array', function(){
+    expect(Kuro_base.flattenArray([1,2,[3,4]])).to.deep.equal([1,2,3,4]);
+    expect(Kuro_base.flattenArray([1,2,[3,[4,5]]])).to.deep.equal([1,2,3,4,5]);
+    expect(Kuro_base.flattenArray([1,2])).to.deep.equal([1,2]);
+    expect(Kuro_base.flattenArray(1)).to.deep.equal(1);
   });
 });
