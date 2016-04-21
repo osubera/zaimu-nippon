@@ -222,6 +222,7 @@ define(function(){
       var _value;
       var _type;
       
+      /*
       // リストパース
       function _parseList(x, co, fallback) {
         var v = x == undefined ? [] : Array.isArray(x) ? x : [x];
@@ -239,21 +240,29 @@ define(function(){
         //  typeof x == 'string' ? x.split(',') : x;
         //return(v && v !== true ? v : []);
       }
-      
+      */
       Object.defineProperties(this, {
         "value": { get: function() {
                         var v = [];
-                        for(var i = 0; i < _value.length; i++) {
+                        var n = _value.length
+                        for(var i = 0; i < n; i++) {
                           v.push(_value[i].value);
                         }
                         return v; 
                       },
                       set: function(value) {
+                        var n = _value.length;
+                        var v = lengthenArray(value, n);
+                        for(var i = 0; i < n; i++) {
+                          _value[i].value = v[i];
+                        }
 //                        _value = parseList(value, this.defaultValue, this.type);
-                        _value = _parseList(value, this.factory, this.defaultValue);
+                        //_value = _parseList(value, this.factory, this.defaultValue);
                       },
                       configurable: true },
         "defaultValue": { value: 0, writable: true, configurable: true },
+        // get set にして、各要素の defaultValue を変更する
+        
         "defaultType": { value: 'number', writable: true, configurable: true },
         "type": { get: function(){ return _type; }, configurable: true },
         "length": { get: function(){ return _value.length; },
@@ -281,8 +290,8 @@ define(function(){
       function Each(fn) {
         // 内部変数 _value を直接呼ぶので継承できない。
         // fn = function(element)
-        var n = _value.length;
         var v = [];
+        var n = _value.length;
         for(var i = 0; i < n; i++) {
           v.push(fn(_value[i]));
         }
@@ -304,6 +313,7 @@ define(function(){
         _value = new Array(n);
         for(var i = 0; i < n; i++) {
           _value[i] = new co(v);
+          _value[i].defaultValue = v;
         }
       }
       this.resetByLength = ResetByLength;
@@ -326,6 +336,7 @@ define(function(){
         _value = new Array(n);
         for(var i = 0; i < n; i++) {
           _value[i] = new co(v[i]);
+          _value[i].defaultValue = this.defaultValue;
         }
       }
       this.resetByValues = ResetByValues;

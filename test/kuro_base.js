@@ -601,7 +601,17 @@ describe('Kuro_base.list', function(){
         */
       });
       it('should accept property value as an array or a basic type', function(){
-        // value =
+        x.resetByLength(5, 'number');
+        x.value = [5,4,3,2,1];
+        expect(x.value).to.deep.equal([5,4,3,2,1]);
+        x.value = ['10',20];
+        expect(x.value).to.deep.equal([10,20,10,20,10]);
+        x.value = 4;
+        expect(x.value).to.deep.equal([4,4,4,4,4]);
+        x.value = [8,7,6,5,4,3,2,1];
+        expect(x.value).to.deep.equal([8,7,6,5,4]);
+        x.value = undefined;
+        expect(x.value).to.deep.equal([0,0,0,0,0]);
       });
       it('should not parse value through property', function(){
         // value =
@@ -641,7 +651,7 @@ describe('Kuro_base.list', function(){
       });
       it('should be independent to another instance', function(){
         expect(x.value).not.to.deep.equal(y.value);
-        x.value = [4,5];
+        x.resetByValues([4,5]);
         expect(x.value).to.deep.equal([4,5]);
         expect(y.value).to.deep.equal([0,0,0]);
       });
