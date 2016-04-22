@@ -575,6 +575,8 @@ describe('Kuro_base.list', function(){
         x.resetByValues([100,200,300]);
         x.updateValueAt(2,400);
         expect(x.value).to.deep.equal([100,200,400]);
+        expect(function(){x.updateValueAt(-1,999)}).to.throw(RangeError);
+        expect(function(){x.updateValueAt(3,999)}).to.throw(RangeError);
       });
       it('should chage length', function(){
         // increase, decrease, updateLength
@@ -670,6 +672,7 @@ describe('Kuro_base.list', function(){
       it('should change the default value', function(){
         x.defaultValue = 12;
         expect(x.defaultValue).to.equal(12);
+        expect(x.each(function(o){ return o.defaultValue; })).to.deep.equal([12,12]);
         /*
         x.push(2);
         expect(x.value).to.deep.equal([4,5,12,12]);

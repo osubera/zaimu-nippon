@@ -217,30 +217,10 @@ define(function(){
     ############################*/
     
     function KuroList(length, type) {
-        //KuroVar.call(this);
-      
       var _value;
       var _type;
+      var _defaultValue = 0;
       
-      /*
-      // リストパース
-      function _parseList(x, co, fallback) {
-        var v = x == undefined ? [] : Array.isArray(x) ? x : [x];
-        var n = v.length;
-//        var co = this.factory;
-        var y = new Array(n);
-        for(var i = 0; i < n; i++) {
-          var w = new co;
-          w.defaultValue = fallback;
-          w.value = v[i];
-          y[i] = w;
-        }
-        return(y);
-        //var v = Array.isArray(x) ? x : 
-        //  typeof x == 'string' ? x.split(',') : x;
-        //return(v && v !== true ? v : []);
-      }
-      */
       Object.defineProperties(this, {
         "value": { get: function() {
                         var v = [];
@@ -256,13 +236,14 @@ define(function(){
                         for(var i = 0; i < n; i++) {
                           _value[i].value = v[i];
                         }
-//                        _value = parseList(value, this.defaultValue, this.type);
-                        //_value = _parseList(value, this.factory, this.defaultValue);
                       },
                       configurable: true },
-        "defaultValue": { value: 0, writable: true, configurable: true },
-        // get set にして、各要素の defaultValue を変更する
-        
+        "defaultValue": { get: function(){ return _defaultValue; },
+                                 set: function(value){
+                                    _defaultValue = value;
+                                    Each(function(o){ o.defaultValue = value; });
+                                 },
+                                 configurable: true },
         "defaultType": { value: 'number', writable: true, configurable: true },
         "type": { get: function(){ return _type; }, configurable: true },
         "length": { get: function(){ return _value.length; },
@@ -301,7 +282,7 @@ define(function(){
       
       // Reset系は、内部objectをすべて作りなおす、総入れ替え。
       
-      function ResetByLength(length, type) {
+      function resetByLength(length, type) {
         // 内部変数 _type, _value を直接変更するので継承できない。
         var n = Number.parseInt(length);
         if(!n) { n = 0; }
@@ -309,17 +290,17 @@ define(function(){
         if(!this.factory) { _type = this.defaultType; }
         
         var co = this.factory;
-        var v = this.defaultValue;
+        var v = _defaultValue;
         _value = new Array(n);
         for(var i = 0; i < n; i++) {
           _value[i] = new co(v);
           _value[i].defaultValue = v;
         }
       }
-      this.resetByLength = ResetByLength;
+      this.resetByLength = resetByLength;
       this.resetByLength(length, type);
       
-      function ResetByValues(value) {
+      function resetByValues(value) {
         // 内部変数 _type, _value を直接変更するので継承できない。
         var v = Array.isArray(value) ? value : [value];
         // value: Arrayまたは単一値、単一値は要素1のArrayとみなす。
@@ -336,14 +317,14 @@ define(function(){
         _value = new Array(n);
         for(var i = 0; i < n; i++) {
           _value[i] = new co(v[i]);
-          _value[i].defaultValue = this.defaultValue;
+          _value[i].defaultValue = _defaultValue;
         }
       }
-      this.resetByValues = ResetByValues;
+      this.resetByValues = resetByValues;
       
       // Update系は、内部objectをできるだけ保持し値だけを入れ替える。
       
-      function UpdateValues(value) {
+      function updateValues(value) {
         // 内部変数 _value を直接呼ぶので継承できない。
         if(Array.isArray(value)) {
           var n = Math.min(_value.length, value.length);
@@ -362,9 +343,9 @@ define(function(){
           }
         }
       }
-      this.updateValues = UpdateValues;
+      this.updateValues = updateValues;
       
-      function UpdateValueAt(index, value) {
+      function updateValueAt(index, value) {
         // 内部変数 _value を直接呼ぶので継承できない。
         var id = Number.parseInt(index);
         if(id < 0 || id >= _value.length) {
@@ -372,15 +353,20 @@ define(function(){
         }
         _value[id].value = value;
       }
-      this.updateValueAt = UpdateValueAt;
+      this.updateValueAt = updateValueAt;
+      
+      function updateLength(length) {
+        var diff = length - this.length;
+        if(diff > 0) { this.increase(diff); }
+        else if(diff < 0) { this.decrease(-diff); }
+      }
+      this.updateLength = updateLength;
       
       this.toString = function(){
         return(this.value.toString());
       };
       this.toJSON = function(){
         return(this.value);
-      }
-      this.parse = function(){
       }
     }
     this.list = KuroList;
