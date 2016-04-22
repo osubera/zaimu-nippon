@@ -579,7 +579,34 @@ describe('Kuro_base.list', function(){
         expect(function(){x.updateValueAt(3,999)}).to.throw(RangeError);
       });
       it('should chage length', function(){
-        // increase, decrease, updateLength
+        x.increase(3);
+        expect(x.length).to.equal(6);
+        expect(x.value).to.deep.equal([100,200,400,0,0,0]);
+        x.decrease(2);
+        expect(x.length).to.equal(4);
+        expect(x.value).to.deep.equal([100,200,400,0]);
+        x.increase(0);
+        expect(x.length).to.equal(4);
+        expect(x.value).to.deep.equal([100,200,400,0]);
+        x.decrease(0);
+        expect(x.length).to.equal(4);
+        expect(x.value).to.deep.equal([100,200,400,0]);
+        x.updateLength(4);
+        expect(x.length).to.equal(4);
+        expect(x.value).to.deep.equal([100,200,400,0]);
+        x.updateLength(5);
+        expect(x.length).to.equal(5);
+        expect(x.value).to.deep.equal([100,200,400,0,0]);
+        x.updateLength(2);
+        expect(x.length).to.equal(2);
+        expect(x.value).to.deep.equal([100,200]);
+        expect(function(){x.updateLength(-1)}).to.throw(RangeError);
+        expect(function(){x.increase(-1)}).to.throw(RangeError);
+        expect(function(){x.decrease(-1)}).to.throw(RangeError);
+        expect(function(){x.decrease(3)}).to.throw(RangeError);
+        x.updateLength(0);
+        expect(x.length).to.equal(0);
+        expect(x.value).to.deep.equal([]);
       });
       it('should relocate values', function(){
         // move
@@ -616,7 +643,10 @@ describe('Kuro_base.list', function(){
         expect(x.value).to.deep.equal([0,0,0,0,0]);
       });
       it('should not parse value through property', function(){
-        // value =
+        x.value = '1,2,3';
+        expect(x.value).to.deep.equal([123,123,123,123,123]);
+        expect(x.value).not.to.deep.equal([1,2,3]);
+        expect(x.value).not.to.deep.equal(['1,2,3']);
       });
       it('should reset items by these methods', function(){
         // resetByLength, resetByValues
@@ -673,10 +703,8 @@ describe('Kuro_base.list', function(){
         x.defaultValue = 12;
         expect(x.defaultValue).to.equal(12);
         expect(x.each(function(o){ return o.defaultValue; })).to.deep.equal([12,12]);
-        /*
-        x.push(2);
+        x.increase(2);
         expect(x.value).to.deep.equal([4,5,12,12]);
-        */
       });
       it('should change the default type', function(){
       });

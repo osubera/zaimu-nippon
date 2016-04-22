@@ -356,11 +356,38 @@ define(function(){
       this.updateValueAt = updateValueAt;
       
       function updateLength(length) {
-        var diff = length - this.length;
+        var diff = Number.parseInt(length) - this.length;
         if(diff > 0) { this.increase(diff); }
         else if(diff < 0) { this.decrease(-diff); }
       }
       this.updateLength = updateLength;
+      
+      function increase(number) {
+        // 内部変数 _value を直接呼ぶので継承できない。
+        var x = Number.parseInt(number);
+        if(x < 0) {
+          throw new RangeError('must be positive and within length');
+        }
+        var co = this.factory;
+        for(var i = 0; i < x; i++) {
+          var o = new co(_defaultValue);
+          o.defaultValue = _defaultValue;
+          _value.push(o);
+        }
+      }
+      this.increase = increase;
+      
+      function decrease(number) {
+        // 内部変数 _value を直接呼ぶので継承できない。
+        var x = Number.parseInt(number);
+        if(x < 0 || x > _value.length ) {
+          throw new RangeError('must be positive');
+        }
+        for(var i = 0; i < x; i++) {
+          _value.pop();
+        }
+      }
+      this.decrease = decrease;
       
       this.toString = function(){
         return(this.value.toString());
