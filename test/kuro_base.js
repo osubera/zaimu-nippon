@@ -609,7 +609,21 @@ describe('Kuro_base.list', function(){
         expect(x.value).to.deep.equal([]);
       });
       it('should relocate values', function(){
-        // move
+        x.resetByValues([1,2,3,4,5,6,7,8,9]);
+        x.move([true,true,false,true,false,false,true,true,false]);
+        expect(x.value).to.deep.equal([1,2,4,7,8,0,0,0,0]);
+        x.resetByValues([1,2,3,4,5,6,7,8,9]);
+        x.move(['true',1,0,'also acceptable',undefined,'','cat','dog',NaN]);
+        expect(x.value).to.deep.equal([1,2,4,7,8,0,0,0,0]);
+        x.resetByValues([1,2,3,4,5,6,7,8,9]);
+        x.move([true,true,false,true,false,false,true,true,false,true,true,true,true]);
+        expect(x.value).to.deep.equal([1,2,4,7,8,0,0,0,0]);
+        x.resetByValues([1,2,3,4,5,6,7,8,9]);
+        x.move([true,true,false,true]);
+        expect(x.value).to.deep.equal([1,2,4,0,0,0,0,0,0]);
+        x.resetByValues([1,2,3,4,5,6,7,8,9]);
+        x.move('will be nop');
+        expect(x.value).to.deep.equal([1,2,3,4,5,6,7,8,9]);
       });
       it('should set values back to default', function(){
         // clearItem, clearItemAt

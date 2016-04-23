@@ -389,6 +389,22 @@ define(function(){
       }
       this.decrease = decrease;
       
+      function move(deadOrAlive) {
+        var current = this.value;
+        var m = current.length;
+        var update = new Array(m);
+        var n = Math.min(m, deadOrAlive.length);
+        var j = 0;
+        for(var i = 0; i < n; i++) {
+          if(deadOrAlive[i]) {
+            update[j++] = current[i];
+          }
+        }
+        this.value = update;
+        // undefined で上書きするので、updateValues では不可。
+      }
+      this.move = move;
+      
       this.toString = function(){
         return(this.value.toString());
       };
