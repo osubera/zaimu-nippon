@@ -675,6 +675,19 @@ describe('Kuro_base.list', function(){
         // parseCSV, parseJSON
       });
       it('should extract specified values', function(){
+        x.resetByValues([1,3,5]);
+        expect(x.item(1)).to.equal(3);
+        expect(x.item(1,function(o){return(o.value * 2);})).to.equal(6);
+        expect(x.item(1,function(o){return(o.defaultValue);})).to.equal(0);
+        expect(x.at(1)).to.deep.equal([3]);
+        expect(x.at(1,2)).to.deep.equal([3,5]);
+        expect(x.at(1,2,function(o){return(o.value * 2);})).to.deep.equal([6,10]);
+        expect(x.select([true,false,true])).to.deep.equal([1,5]);
+        expect(x.select([true,false,true,true])).to.deep.equal([1,5]);
+        expect(x.select([true,false])).to.deep.equal([1]);
+        expect(x.select([true,false,true],function(o){return(o.value - 1);})).to.deep.equal([0,4]);
+        expect(x.filter(function(o){return(o.value > 2);})).to.deep.equal([3,5]);
+        expect(x.filter(function(o){return(o.value > 2);}, function(o){return(o.toString());})).to.deep.equal(['3','5']);
         // item, at, select, filter
       });
       it('should do loop for each item', function(){

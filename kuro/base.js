@@ -417,6 +417,49 @@ define(function(){
       }
       this.clearAt = clearAt;
       
+      function item(at, fn) {
+        var f = fn ? fn : function(element){ return element.value; };
+        return(f(_value[at]));
+      }
+      this.item = item;
+      
+      function at(from, to, fn) {
+        var f = fn ? fn : function(element){ return element.value; };
+        var to2 = to ? to : from;
+        var v = [];
+        for(var i = from; i <= to2; i++) {
+          v.push(f(_value[i]));
+        }
+        return(v);
+      }
+      this.at = at;
+      
+      function select(which, fn) {
+        var f = fn ? fn : function(element){ return element.value; };
+        var n = Math.min(which.length, this.length);
+        var v = [];
+        for(var i = 0; i < n; i++) {
+          if(which[i]) {
+            v.push(f(_value[i]));
+          }
+        }
+        return(v);
+      }
+      this.select = select;
+      
+      function filter(criteria, fn) {
+        var f = fn ? fn : function(element){ return element.value; };
+        var n = this.length;
+        var v = [];
+        for(var i = 0; i < n; i++) {
+          if(criteria(_value[i])) {
+            v.push(f(_value[i]));
+          }
+        }
+        return(v);
+      }
+      this.filter = filter;
+      
       this.toString = function(){
         return(this.value.toString());
       };
