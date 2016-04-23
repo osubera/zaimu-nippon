@@ -500,6 +500,61 @@ define(function(){
     }
     this.flattenArray = flattenArray;
     
+    function parseStringCSV(text, delimitor, quotation, escapes) {
+      if(text == undefined) { return([]); }
+      var d = delimitor != undefined ? delimitor : / *, */;
+      var q = quotation != undefined ? quotation : '"';
+      var e = typeof escapes == 'object' ? escapes : { '""' : '"' };
+      var x = text.split(d);
+      var dc = typeof d == 'object' ? d.exec(text) : lengthenArray(d, x.length); // デリミタ記憶
+      var v = [];
+      var buff = []; // クォート継続用
+      var qs = new RegExp("^" + q);
+      var qe, qc;
+      var j = 0;
+      for(var i = 0; i < x.length; i++) {
+        // クォートの除去とエスケープ解除を随所で。
+        if(buff.length == 0) {
+          if(qs.test(x[i])) { // 新規クォート開始
+            qc = qs.exec(x[i])[0];
+            qe = new RegExp(escapeRegExp(qc) + "$");
+            if(qe.test(x[i])) { // 単独でクォート終了
+              v.push(x[i]);
+            }
+            else { // クォート継続
+              buff.push(x[i]);
+              buff.push(dc[i]);
+            }
+          }
+          else { // クォート無し
+            v.push(x[i]);
+          }
+        }
+        else { // クォート継続中
+          if(qe.test(x[i])) { // 複合クォート終了
+            buff.push(x[i]);
+            v.push(buff.join(""));
+            buff = [];
+          }
+          else { // クォート継続
+            buff.push(x[i]);
+            buff.push(dc[i]);
+          }
+        }
+      }
+      if(buff.length > 0) { // 閉じていないクォート
+        v.push(buff.join(""));
+      }
+      return(v);
+    }
+    this.parseStringCSV = parseStringCSV;
+    
+    function escapeRegExp(string){
+      // by https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
+      return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
+    }
+    this.escapeRegExp = escapeRegExp;
+    
     function quoteString(text, quotation) {
     }
     this.quoteString = quoteString;
@@ -639,13 +694,13 @@ flatArray(array)
 
 quote(string, quotation)
 quotationで囲む。
-必要なら ¥ でエスケープする。
-¥¥も
+必要なら \ でエスケープする。
+\\も
 
 unquote(string, quotation)
 quotation囲みをはずす。
-¥ エスケープを元に戻す。
-¥¥も
+\ エスケープを元に戻す。
+\\も
 囲まれてないなら何もしない。
 quotation指定がないなら、'"両方を探し、一方を実行する。
 

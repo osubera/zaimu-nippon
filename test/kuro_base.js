@@ -524,6 +524,11 @@ describe('Kuro_base.list', function(){
         expect(x).to.respondTo('each');
         expect(x).to.respondTo('parseCSV');
         expect(x).to.respondTo('parseJSON');
+        expect(x).to.respondTo('lengthenArray');
+        expect(x).to.respondTo('flattenArray');
+        expect(x).to.respondTo('parseStringCSV');
+        expect(x).to.respondTo('quoteString');
+        expect(x).to.respondTo('unquoteString');
       });
       it('should be enumerable', function(){
         expect(x.propertyIsEnumerable('keys')).to.be.true;
