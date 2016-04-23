@@ -405,6 +405,18 @@ define(function(){
       }
       this.move = move;
       
+      function clearItem(at) {
+        this.updateValueAt(at, undefined);
+      }
+      this.clearItem = clearItem;
+      
+      function clearAt(from, to) {
+        for(var i = from; i <= to; i++) {
+          this.updateValueAt(i, undefined);
+        }
+      }
+      this.clearAt = clearAt;
+      
       this.toString = function(){
         return(this.value.toString());
       };

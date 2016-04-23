@@ -626,7 +626,10 @@ describe('Kuro_base.list', function(){
         expect(x.value).to.deep.equal([1,2,3,4,5,6,7,8,9]);
       });
       it('should set values back to default', function(){
-        // clearItem, clearItemAt
+        x.clearItem(1);
+        expect(x.value).to.deep.equal([1,0,3,4,5,6,7,8,9]);
+        x.clearAt(4,7);
+        expect(x.value).to.deep.equal([1,0,3,4,0,0,0,0,9]);
       });
       it('should parse string through methods', function(){
         // parseCSV, parseJSON
