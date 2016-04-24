@@ -504,45 +504,109 @@ define(function(){
       if(text == undefined) { return([]); }
       var d = delimitor != undefined ? delimitor : / *, */;
       var q = quotation != undefined ? quotation : '"';
-      var e = typeof escapes == 'object' ? escapes : { '""' : '"' };
+      var e = typeof escapes == 'object' ? escapes : { raw: ['"'], esc: ['""'], escreg: [/(?<!(^|[^"])("")*")""/] };
       var x = text.split(d);
       var dc = typeof d == 'object' ? d.exec(text) : lengthenArray(d, x.length); // デリミタ記憶
       var v = [];
       var buff = []; // クォート継続用
       var qs = new RegExp("^" + q);
-      var qe, qc;
-      var j = 0;
+      var qe, qc, qq, x2, qq2;
       for(var i = 0; i < x.length; i++) {
         // クォートの除去とエスケープ解除を随所で。
         if(buff.length == 0) {
           if(qs.test(x[i])) { // 新規クォート開始
             qc = qs.exec(x[i])[0];
+            // エスケープを除外
+            qq2 = [];
+            //x2 = x[i];
+            for(var k = 0; k < e.raw.length; k++) {
+              if(e.raw[k] == qc) {
+                //qq = new RegExp(escapeRegExp(e.esc[k]), "g");
+                //x2 = x2.replace(qq, "");
+                qq2.push(escapeRegExp(e.esc[k]));
+              }
+            }
+            qq = new RegExp(qq2.join("|"), "g");
+            x2 = x[i].replace(qq, "");
             qe = new RegExp(escapeRegExp(qc) + "$");
-            if(qe.test(x[i])) { // 単独でクォート終了
-              v.push(x[i]);
+            if(qe.test(x2)) { // 単独でクォート終了
+            /*
+              var escaped = false;
+              // エスケープ済みかもしれないのでチェック
+              for(var k = 0; k <e.esc.length; k++) {
+                if(new RegExp(escapeRegExp(e.esc[k]) + "$").test(x[i])) {
+                  escaped = true;
+                }
+              }
+              if(escaped) { // エスケープ済みだった。
+                // unquote, repS, buff, dc
+                buff.push(unquoteString(x[i].replace(qs, ""), e));
+                buff.push(dc[i]);
+              }
+              else {
+                // unquote, repS, repE, v-direct
+                v.push(unquoteString(x[i].replace(qs, "").replace(qe, ""), e));
+              }
+              */
+              // unquote, repS, repE, v-direct
+              v.push(unquoteString(x[i].replace(qs, "").replace(qe, ""), e));
             }
             else { // クォート継続
-              buff.push(x[i]);
+              // unquote, repS, buff, dc
+              buff.push(unquoteString(x[i].replace(qs, ""), e));
               buff.push(dc[i]);
             }
           }
           else { // クォート無し
+            // v-direct
             v.push(x[i]);
           }
         }
         else { // クォート継続中
+          // エスケープを除外
+          x2 = x[i];
+          for(var k = 0; k < e.raw.length; k++) {
+            if(e.raw[k] == qc) {
+              qq = new RegExp(escapeRegExp(e.esc[k]), "g");
+              x2 = x2.replace(qq, "");
+              // ここは作りなおさなくても、qqをarrayに持っておくか、複合表現を作っておけば再利用で済む。
+            }
+          }
+          if(qe.test(x2)) { // 単独でクォート終了
+          /*
           if(qe.test(x[i])) { // 複合クォート終了
-            buff.push(x[i]);
+            // エスケープ済みかもしれないのでチェック
+            for(var k = 0; k <e.esc.length; k++) {
+              if(new RegExp(escapeRegExp(e.esc[k]) + "$").test(x[i])) {
+                escaped = true;
+              }
+            }
+            if(escaped) { // エスケープ済みだった。
+              // unquote, buff
+              buff.push(unquoteString(x[i], e));
+              buff.push(dc[i]);
+            }
+            else {
+              // unquote, repE, buff, v, clear-buff
+              buff.push(unquoteString(x[i].replace(qe, ""), e));
+              v.push(buff.join(""));
+              buff = [];
+            }
+            */
+            // unquote, repE, buff, v, clear-buff
+            buff.push(unquoteString(x[i].replace(qe, ""), e));
             v.push(buff.join(""));
             buff = [];
           }
           else { // クォート継続
-            buff.push(x[i]);
+            // unquote, buff, dc
+            buff.push(unquoteString(x[i], e));
             buff.push(dc[i]);
           }
         }
       }
       if(buff.length > 0) { // 閉じていないクォート
+        // v
         v.push(buff.join(""));
       }
       return(v);
