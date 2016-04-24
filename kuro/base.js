@@ -511,6 +511,17 @@ define(function(){
       var buff = []; // クォート継続用
       var qs = new RegExp("^" + q);
       var qe, qc, qq, x2, qq2;
+      // helper object を作って、一連の補助変数と機能を閉じ込めるか。
+      // parseStringCSV(text, new ParseStringCSVHelper(delimitor, quotation, escapes))
+      // みたいな感じで初期化するとか。
+      // ここには処理の骨格として、for, if 文を残し、一連の機能をそれぞれメソッドにして
+      // 読みやすくする。
+      // あるいは流れだけを持つメソッドも作ってしまい、
+      // parseStringCSV = (new ParseStringCSVHelper(delimitor, quotation, escapes)).exec
+      // とかして、
+      // parseStringCSV(text) だけで動くとか。
+      // 使うcsvの種類ごとに一度だけ初期化すればいいので、
+      // list object 初期化時に、csv用とjson用を作っておけばいい。
       for(var i = 0; i < x.length; i++) {
         // クォートの除去とエスケープ解除を随所で。
         if(buff.length == 0) {
