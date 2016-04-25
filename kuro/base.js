@@ -527,6 +527,7 @@ define(function(){
         if(buff.length == 0) {
           if(qs.test(x[i])) { // 新規クォート開始
             qc = qs.exec(x[i])[0];
+            // exec でなく string.match
             // エスケープを除外
             qq2 = [];
             //x2 = x[i];
@@ -624,11 +625,75 @@ define(function(){
     }
     this.parseStringCSV = parseStringCSV;
     
+    function ParseStringCSV(delimitor, quotation, escapes) {
+      var _i;
+      Object.defineProperties(this, {
+        "i": { get: function() { return _i; },
+               set: function(i) {
+                  _i = i;
+                  if(_i >= this.n) { this.endQuote(); }
+               },
+               configurable: true },
+        "d": { value: / *, */, writable: true, configurable: true },
+        "q": { value: '"', writable: true, configurable: true },
+        "e": { value: { raw: ['"'], esc: ['""'] }, writable: true, configurable: true },
+        "x": { value: [], writable: true, configurable: true },
+        "x2": { value: '', writable: true, configurable: true },
+        "dc": { value: '', writable: true, configurable: true },
+        "v": { value: [], writable: true, configurable: true },
+        "buff": { value: [], writable: true, configurable: true },
+        "n": { value: 0, writable: true, configurable: true },
+        "qs": { value: undefined, writable: true, configurable: true },
+        "qe": { value: undefined, writable: true, configurable: true },
+        "qc": { value: undefined, writable: true, configurable: true },
+        "qq": { value: undefined, writable: true, configurable: true },
+        "qq2": { value: undefined, writable: true, configurable: true }
+      });
+      if(delimitor) { this.d = delimitor; }
+      if(quotation) { this.q = quotation; }
+      if(escapes) { this.e = escapes; }
+      
+      this.noQuote;
+      this.continueQuote;
+      this.endQuote;
+      this.beginQuote;
+      
+      this.exec =function(text) {
+        if(text == undefined) { return([]); }
+        this.x = text.split(this.d);
+        this.n = this.x.length;
+        this.dc =typeof this.d == 'object' ? 
+          this.d.exec(text) : lengthenArray(this.d, this.n); // デリミタ記憶
+        this.v = [];
+        this.buff = []; // クォート継続用
+        this.qs = new RegExp("^" + this.q); // expect escaped by user
+        for(this.i = 0; this.i < this.n; this.i++) {
+        }
+      };
+    }
+    this.ParseStringCSV = ParseStringCSV;
+    
     function escapeRegExp(string){
       // by https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
       return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
     }
     this.escapeRegExp = escapeRegExp;
+    
+    this.EscCSV = { raw: ['"'], esc: ['""'] };
+    
+    this.EscJSON = { raw: ['\\', '"'], esc: ['\\\\', '\\"']};
+    
+    function transcribeString(text, from, to) {
+    }
+    this.transcribeString = transcribeString;
+    
+    function escapeString(text, escapes) {
+    }
+    this.escapeString = escapeString;
+    
+    function unescapeString(text, escapes) {
+    }
+    this.unescapeString = unescapeString;
     
     function quoteString(text, quotation) {
     }
