@@ -626,17 +626,11 @@ define(function(){
     this.parseStringCSV = parseStringCSV;
     
     function ParseStringCSV(delimitor, quotation, escapes) {
-      var _i;
       Object.defineProperties(this, {
-        "i": { get: function() { return _i; },
-               set: function(i) {
-                  _i = i;
-                  if(_i >= this.n) { this.endQuote(); }
-               },
-               configurable: true },
+        "i": { value: 0, writable: true, configurable: true },
         "d": { value: / *, */, writable: true, configurable: true },
         "q": { value: '"', writable: true, configurable: true },
-        "e": { value: { raw: ['"'], esc: ['""'] }, writable: true, configurable: true },
+        "e": { value: EscCSV, writable: true, configurable: true },
         "x": { value: [], writable: true, configurable: true },
         "x2": { value: '', writable: true, configurable: true },
         "dc": { value: '', writable: true, configurable: true },
@@ -647,7 +641,16 @@ define(function(){
         "qe": { value: undefined, writable: true, configurable: true },
         "qc": { value: undefined, writable: true, configurable: true },
         "qq": { value: undefined, writable: true, configurable: true },
-        "qq2": { value: undefined, writable: true, configurable: true }
+        "qq2": { value: undefined, writable: true, configurable: true },
+        "isEmptyBuff": { get: function(){
+                                 },
+                                 configurable: true },
+        "hasQuoteStart": { get: function(){
+                                    },
+                                    configurable: true },
+        "hasQuoteEnd": { get: function(){
+                                  },
+                                  configurable: true }
       });
       if(delimitor) { this.d = delimitor; }
       if(quotation) { this.q = quotation; }
@@ -658,7 +661,14 @@ define(function(){
       this.endQuote;
       this.beginQuote;
       
-      this.exec =function(text) {
+      this.pushQuotedItem;
+      this.keepNewQuotedItem;
+      this.pushNoQuoteItem;
+      this.pushKeptQuotedItem;
+      this.continueKeepingQuotedItem;
+      this.flushBuff;
+      
+      function exec(text) {
         if(text == undefined) { return([]); }
         this.x = text.split(this.d);
         this.n = this.x.length;
@@ -667,9 +677,34 @@ define(function(){
         this.v = [];
         this.buff = []; // クォート継続用
         this.qs = new RegExp("^" + this.q); // expect escaped by user
-        for(this.i = 0; this.i < this.n; this.i++) {
+        for(var i = 0; i < this.n; i++) {
+          this.i = i;
+          if(this.isEmptyBuff) {
+            if(this.hasQuoteStart) {
+              if(this.hasQuoteEnd) {
+                this.pushQuotedItem();
+              }
+              else { // not hasQuoteEnd
+                this.keepNewQuotedItem();
+              }
+            }
+            else { // not hasQuoteStart
+              this.pushNoQuoteItem();
+            }
+          }
+          else { // not isEmptyBuff
+            if(this.hasQuoteEnd) {
+              this.pushKeptQuotedItem();
+            }
+            else { // not hasQuoteEnd
+              this.continueKeepingQuotedItem();
+            }
+          }
         }
-      };
+        this.flushBuff;
+        return(this.v);
+      }
+      this.exec = exec;
     }
     this.ParseStringCSV = ParseStringCSV;
     
@@ -679,9 +714,11 @@ define(function(){
     }
     this.escapeRegExp = escapeRegExp;
     
-    this.EscCSV = { raw: ['"'], esc: ['""'] };
+    var EscCSV = { raw: ['"'], esc: ['""'] };
+    this.EscCSV = EscCSV;
     
-    this.EscJSON = { raw: ['\\', '"'], esc: ['\\\\', '\\"']};
+    var EscJSON = { raw: ['\\', '"'], esc: ['\\\\', '\\"']};
+    this.EscJSON = EscJSON;
     
     function transcribeString(text, from, to) {
     }
