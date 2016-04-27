@@ -29,8 +29,15 @@ describe('Kuro_base', function(){
     expect(Kuro_base).itself.to.respondTo('formatDateYmd');
     expect(Kuro_base).itself.to.respondTo('lengthenArray');
     expect(Kuro_base).itself.to.respondTo('flattenArray');
-    expect(Kuro_base).itself.to.respondTo('quoteString');
-    expect(Kuro_base).itself.to.respondTo('unquoteString');
+    expect(Kuro_base).itself.to.respondTo('ParseStringCSV');
+    expect(Kuro_base).itself.to.respondTo('parseStringCSV');
+    expect(Kuro_base).itself.to.respondTo('parseStringJSON');
+    expect(Kuro_base).itself.to.respondTo('escapeRegExp');
+    expect(Kuro_base).itself.to.respondTo('EscCSV');
+    expect(Kuro_base).itself.to.respondTo('EscJSON');
+    expect(Kuro_base).itself.to.respondTo('transcribeString');
+    expect(Kuro_base).itself.to.respondTo('escapeString');
+    expect(Kuro_base).itself.to.respondTo('unescapeString');
   });
 });
 
@@ -795,5 +802,135 @@ describe('Kuro_base.flattenArray', function(){
     expect(Kuro_base.flattenArray([1,2,[3,[4,5]]])).to.deep.equal([1,2,3,4,5]);
     expect(Kuro_base.flattenArray([1,2])).to.deep.equal([1,2]);
     expect(Kuro_base.flattenArray(1)).to.deep.equal(1);
+  });
+});
+
+describe('Kuro_base.ParseStringCSV', function(){
+  it('should be a function', function(){
+    expect(Kuro_base.ParseStringCSV).to.be.a('function');
+  });
+  it('should be a constructor', function(){
+    var x = new Kuro_base.ParseStringCSV;
+    expect(x).to.be.an('object')
+      .and.to.be.instanceOf(Kuro_base.ParseStringCSV);
+    
+    describe('new Kuro_base.ParseStringCSV', function(){
+      it('should have properties', function(){
+        expect(x).to.have.property('i');
+        expect(x).to.have.property('text');
+        expect(x).to.have.property('d');
+        expect(x).to.have.property('q');
+        expect(x).to.have.property('e');
+        expect(x).to.have.property('x');
+        expect(x).to.have.property('x1');
+        expect(x).to.have.property('x2');
+        expect(x).to.have.property('dc');
+        expect(x).to.have.property('dc1');
+        expect(x).to.have.property('v');
+        expect(x).to.have.property('buff');
+        expect(x).to.have.property('n');
+        expect(x).to.have.property('qs');
+        expect(x).to.have.property('qe');
+        expect(x).to.have.property('qc');
+        expect(x).to.have.property('qq');
+        expect(x).to.have.property('isEmptyBuff');
+        expect(x).to.have.property('hasQuoteStart');
+        expect(x).to.have.property('hasQuoteEnd');
+      });
+      it('should respond to methods', function(){
+        expect(x).to.respondTo('setEscapes');
+        expect(x).to.respondTo('updateQq');
+        expect(x).to.respondTo('setText');
+        expect(x).to.respondTo('exec');
+        expect(x).to.respondTo('pushQuotedItem');
+        expect(x).to.respondTo('keepNewQuotedItem');
+        expect(x).to.respondTo('pushNoQuoteItem');
+        expect(x).to.respondTo('pushKeptQuotedItem');
+        expect(x).to.respondTo('continueKeepingQuotedItem');
+        expect(x).to.respondTo('flushBuff');
+      });
+    });
+  });
+});
+
+describe('Kuro_base.parseStringCSV', function(){
+  it('should be a function', function(){
+    expect(Kuro_base.parseStringCSV).to.be.a('function');
+  });
+  it('should parse csv', function(){
+    expect(Kuro_base.parseStringCSV(undefined)).to.deep.equal([]);
+    expect(Kuro_base.parseStringCSV("")).to.deep.equal([""]);
+    expect(Kuro_base.parseStringCSV("1")).to.deep.equal(["1"]);
+    expect(Kuro_base.parseStringCSV("1,2")).to.deep.equal(["1","2"]);
+    expect(Kuro_base.parseStringCSV("1,2,3")).to.deep.equal(["1","2","3"]);
+    expect(Kuro_base.parseStringCSV("  1  ,  2  ,  3  ")).to.deep.equal(["  1","2","3  "]);
+    expect(Kuro_base.parseStringCSV('"a","b","c"')).to.deep.equal(["a","b","c"]);
+    expect(Kuro_base.parseStringCSV('"a",b,  c')).to.deep.equal(["a","b","c"]);
+    expect(Kuro_base.parseStringCSV("a,'b',c")).to.deep.equal(["a","'b'","c"]);
+    expect(Kuro_base.parseStringCSV('"a""","b""c"')).to.deep.equal(['a"','b"c']);
+    expect(Kuro_base.parseStringCSV('"a""","b"",c,d,"')).to.deep.equal(['a"','b",c,d,']);
+  });
+});
+
+describe('Kuro_base.parseStringJSON', function(){
+  it('should be a function', function(){
+    expect(Kuro_base.parseStringJSON).to.be.a('function');
+  });
+  it('should parse json', function(){
+    expect(Kuro_base.parseStringJSON(undefined)).to.deep.equal([]);
+    expect(Kuro_base.parseStringJSON("[]")).to.deep.equal([""]);
+    expect(Kuro_base.parseStringJSON("[1]")).to.deep.equal(["1"]);
+    expect(Kuro_base.parseStringJSON("[1,2]")).to.deep.equal(["1","2"]);
+    expect(Kuro_base.parseStringJSON("[1,2,3]")).to.deep.equal(["1","2","3"]);
+    expect(Kuro_base.parseStringJSON("  [  1  ,  2  ,  3  ]  ")).to.deep.equal(["1","2","3"]);
+    expect(Kuro_base.parseStringJSON('["a","b","c"]')).to.deep.equal(["a","b","c"]);
+    expect(Kuro_base.parseStringJSON('["a",b,  c]')).to.deep.equal(["a","b","c"]);
+    expect(Kuro_base.parseStringJSON("[a,'b',c]")).to.deep.equal(["a","'b'","c"]);
+    expect(Kuro_base.parseStringJSON('["a\"","b\"c"]')).to.deep.equal(['a"','b"c']);
+    expect(Kuro_base.parseStringJSON('["a\"","b\",c,d,"]')).to.deep.equal(['a"','b",c,d,']);
+  });
+});
+
+describe('Kuro_base.transcribeString', function(){
+  it('should be a function', function(){
+    expect(Kuro_base.transcribeString).to.be.a('function');
+  });
+  it('should replace string', function(){
+    expect(Kuro_base.transcribeString()).to.equal('');
+    expect(Kuro_base.transcribeString(
+      "abcdefghijklmnopqrstuvwxyz",
+      ["a","b","c","d","e","f","g","h","i","j","k"],
+      ["A","B","C","D","E","F","G","H","I","J","K"])).to.equal(
+      "ABCDEFGHIJKlmnopqrstuvwxyz");
+    expect(Kuro_base.transcribeString(
+      "transcribe me please!",
+      ["a","b","c","d","e","f","g","h","i","j","k"],
+      ["A","B","C","D","E","F","G","H","I","J","K"])).to.equal(
+      "trAnsCrIBE mE plEAsE!");
+    expect(Kuro_base.transcribeString(
+      "aabcccccd",
+      ["aa","ab","bc","cc","cd"],
+      [1,2,3,4,5])).to.equal(
+      "1344d");
+  });
+});
+
+describe('Kuro_base.escapeString', function(){
+  it('should be a function', function(){
+    expect(Kuro_base.escapeString).to.be.a('function');
+  });
+  it('should escape string', function(){
+    expect(Kuro_base.escapeString('escape "quotes"', {raw: '"', esc: '""'})).to.equal('escape ""quotes""');
+    expect(Kuro_base.escapeString('no quotes', {raw: '"', esc: '""'})).to.equal('no quotes');
+  });
+});
+
+describe('Kuro_base.unescapeString', function(){
+  it('should be a function', function(){
+    expect(Kuro_base.unescapeString).to.be.a('function');
+  });
+  it('should un-escape string', function(){
+    expect(Kuro_base.unescapeString('unescape ""quotes""', {raw: '"', esc: '""'})).to.equal('unescape "quotes"');
+    expect(Kuro_base.unescapeString('no quotes', {raw: '"', esc: '""'})).to.equal('no quotes');
   });
 });

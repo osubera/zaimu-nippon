@@ -500,185 +500,98 @@ define(function(){
     }
     this.flattenArray = flattenArray;
     
-    function parseStringCSV(text, delimitor, quotation, escapes) {
-      if(text == undefined) { return([]); }
-      var d = delimitor != undefined ? delimitor : / *, */;
-      var q = quotation != undefined ? quotation : '"';
-      var e = typeof escapes == 'object' ? escapes : { raw: ['"'], esc: ['""'], escreg: [/(?<!(^|[^"])("")*")""/] };
-      var x = text.split(d);
-      var dc = typeof d == 'object' ? d.exec(text) : lengthenArray(d, x.length); // デリミタ記憶
-      var v = [];
-      var buff = []; // クォート継続用
-      var qs = new RegExp("^" + q);
-      var qe, qc, qq, x2, qq2;
-      // helper object を作って、一連の補助変数と機能を閉じ込めるか。
-      // parseStringCSV(text, new ParseStringCSVHelper(delimitor, quotation, escapes))
-      // みたいな感じで初期化するとか。
-      // ここには処理の骨格として、for, if 文を残し、一連の機能をそれぞれメソッドにして
-      // 読みやすくする。
-      // あるいは流れだけを持つメソッドも作ってしまい、
-      // parseStringCSV = (new ParseStringCSVHelper(delimitor, quotation, escapes)).exec
-      // とかして、
-      // parseStringCSV(text) だけで動くとか。
-      // 使うcsvの種類ごとに一度だけ初期化すればいいので、
-      // list object 初期化時に、csv用とjson用を作っておけばいい。
-      for(var i = 0; i < x.length; i++) {
-        // クォートの除去とエスケープ解除を随所で。
-        if(buff.length == 0) {
-          if(qs.test(x[i])) { // 新規クォート開始
-            qc = qs.exec(x[i])[0];
-            // exec でなく string.match
-            // エスケープを除外
-            qq2 = [];
-            //x2 = x[i];
-            for(var k = 0; k < e.raw.length; k++) {
-              if(e.raw[k] == qc) {
-                //qq = new RegExp(escapeRegExp(e.esc[k]), "g");
-                //x2 = x2.replace(qq, "");
-                qq2.push(escapeRegExp(e.esc[k]));
-              }
-            }
-            qq = new RegExp(qq2.join("|"), "g");
-            x2 = x[i].replace(qq, "");
-            qe = new RegExp(escapeRegExp(qc) + "$");
-            if(qe.test(x2)) { // 単独でクォート終了
-            /*
-              var escaped = false;
-              // エスケープ済みかもしれないのでチェック
-              for(var k = 0; k <e.esc.length; k++) {
-                if(new RegExp(escapeRegExp(e.esc[k]) + "$").test(x[i])) {
-                  escaped = true;
-                }
-              }
-              if(escaped) { // エスケープ済みだった。
-                // unquote, repS, buff, dc
-                buff.push(unquoteString(x[i].replace(qs, ""), e));
-                buff.push(dc[i]);
-              }
-              else {
-                // unquote, repS, repE, v-direct
-                v.push(unquoteString(x[i].replace(qs, "").replace(qe, ""), e));
-              }
-              */
-              // unquote, repS, repE, v-direct
-              v.push(unquoteString(x[i].replace(qs, "").replace(qe, ""), e));
-            }
-            else { // クォート継続
-              // unquote, repS, buff, dc
-              buff.push(unquoteString(x[i].replace(qs, ""), e));
-              buff.push(dc[i]);
-            }
-          }
-          else { // クォート無し
-            // v-direct
-            v.push(x[i]);
-          }
-        }
-        else { // クォート継続中
-          // エスケープを除外
-          x2 = x[i];
-          for(var k = 0; k < e.raw.length; k++) {
-            if(e.raw[k] == qc) {
-              qq = new RegExp(escapeRegExp(e.esc[k]), "g");
-              x2 = x2.replace(qq, "");
-              // ここは作りなおさなくても、qqをarrayに持っておくか、複合表現を作っておけば再利用で済む。
-            }
-          }
-          if(qe.test(x2)) { // 単独でクォート終了
-          /*
-          if(qe.test(x[i])) { // 複合クォート終了
-            // エスケープ済みかもしれないのでチェック
-            for(var k = 0; k <e.esc.length; k++) {
-              if(new RegExp(escapeRegExp(e.esc[k]) + "$").test(x[i])) {
-                escaped = true;
-              }
-            }
-            if(escaped) { // エスケープ済みだった。
-              // unquote, buff
-              buff.push(unquoteString(x[i], e));
-              buff.push(dc[i]);
-            }
-            else {
-              // unquote, repE, buff, v, clear-buff
-              buff.push(unquoteString(x[i].replace(qe, ""), e));
-              v.push(buff.join(""));
-              buff = [];
-            }
-            */
-            // unquote, repE, buff, v, clear-buff
-            buff.push(unquoteString(x[i].replace(qe, ""), e));
-            v.push(buff.join(""));
-            buff = [];
-          }
-          else { // クォート継続
-            // unquote, buff, dc
-            buff.push(unquoteString(x[i], e));
-            buff.push(dc[i]);
-          }
-        }
-      }
-      if(buff.length > 0) { // 閉じていないクォート
-        // v
-        v.push(buff.join(""));
-      }
-      return(v);
-    }
-    this.parseStringCSV = parseStringCSV;
-    
     function ParseStringCSV(delimitor, quotation, escapes) {
       Object.defineProperties(this, {
         "i": { value: 0, writable: true, configurable: true },
-        "d": { value: / *, */, writable: true, configurable: true },
+        "text": { value: "", writable: true, configurable: true },
+        "d": { value: / *, */g, writable: true, configurable: true },
         "q": { value: '"', writable: true, configurable: true },
-        "e": { value: EscCSV, writable: true, configurable: true },
+        "e": { value: EscCSV(), writable: true, configurable: true },
         "x": { value: [], writable: true, configurable: true },
+        "x1": { value: '', writable: true, configurable: true },
         "x2": { value: '', writable: true, configurable: true },
-        "dc": { value: '', writable: true, configurable: true },
+        "dc": { value: [], writable: true, configurable: true },
+        "dc1": { value: '', writable: true, configurable: true },
         "v": { value: [], writable: true, configurable: true },
         "buff": { value: [], writable: true, configurable: true },
         "n": { value: 0, writable: true, configurable: true },
-        "qs": { value: undefined, writable: true, configurable: true },
-        "qe": { value: undefined, writable: true, configurable: true },
-        "qc": { value: undefined, writable: true, configurable: true },
+        "qs": { value: /^/, writable: true, configurable: true },
+        "qe": { value: /$/, writable: true, configurable: true },
+        "qc": { value: '', writable: true, configurable: true },
         "qq": { value: undefined, writable: true, configurable: true },
-        "qq2": { value: undefined, writable: true, configurable: true },
         "isEmptyBuff": { get: function(){
+                                   return(this.buff.length == 0);
                                  },
-                                 configurable: true },
+                                configurable: true },
         "hasQuoteStart": { get: function(){
+                                      var res = this.qs.test(this.x1);
+                                      if(res) {
+                                        // 実際に使われたクォート文字を終了検索に使う
+                                        this.qc = this.qs.exec(this.x1)[0];
+                                        this.qe = new RegExp(escapeRegExp(this.qc) + "$");
+                                        this.x1 = this.x1.replace(this.qs, ""); // 先頭クォート除去
+                                      }
+                                      return(res);
                                     },
                                     configurable: true },
         "hasQuoteEnd": { get: function(){
+                                    // エスケープ文字を全部除外し、対象外にして検索
+                                    this.x2 = this.x1.replace(this.qq, "");
+                                    var res = this.qe.test(this.x2);
+                                    if(res) {
+                                      this.x1 = this.x1.replace(this.qe, ""); // 末尾クォート除去
+                                    }
+                                    return(res);
                                   },
                                   configurable: true }
       });
+      
+      function updateQq(esc) {
+        // 末尾クォート検索時にエスケープ類を一括退避させる
+        // this.e 更新時に必ず動かす必要がある。
+        // 本来、this.e 更新に強制連動すべきだが、
+        // 内部private変数を持ちたくないため、あえて連動にしていない。
+        var qq2 = [];
+        for(var k = 0; k < esc.length; k++) {
+          qq2.push(escapeRegExp(esc[k]));
+        }
+        this.qq = new RegExp(qq2.join("|"), "g");
+      }
+      this.updateQq = updateQq;
+      
+      function setEscapes(escapes) {
+        if(escapes) { this.e = escapes; }
+        this.updateQq(this.e.esc);
+      }
+      this.setEscapes = setEscapes;
+      
       if(delimitor) { this.d = delimitor; }
       if(quotation) { this.q = quotation; }
-      if(escapes) { this.e = escapes; }
+      this.setEscapes(escapes);
       
-      this.noQuote;
-      this.continueQuote;
-      this.endQuote;
-      this.beginQuote;
-      
-      this.pushQuotedItem;
-      this.keepNewQuotedItem;
-      this.pushNoQuoteItem;
-      this.pushKeptQuotedItem;
-      this.continueKeepingQuotedItem;
-      this.flushBuff;
-      
-      function exec(text) {
-        if(text == undefined) { return([]); }
-        this.x = text.split(this.d);
-        this.n = this.x.length;
-        this.dc =typeof this.d == 'object' ? 
-          this.d.exec(text) : lengthenArray(this.d, this.n); // デリミタ記憶
-        this.v = [];
+      function setText(text) {
+        // 対象textに初期処理をして、パース準備をする。
+        this.v = []; // 確定データ用
         this.buff = []; // クォート継続用
         this.qs = new RegExp("^" + this.q); // expect escaped by user
-        for(var i = 0; i < this.n; i++) {
-          this.i = i;
+        this.text = text; // 参照情報に過ぎず、使わない
+        this.x = text.split(this.d);
+        // クォート内も含め、多めに分割し、後からクォート箇所を統合する。
+        // デリミタそのものをエスケープするという発想には対応しない。
+        this.n = this.x.length;
+        this.dc =typeof this.d == 'object' ? 
+          text.match(this.d) : lengthenArray(this.d, this.n); // 統合用にデリミタ記憶
+      }
+      this.setText = setText;
+      
+      function exec(text) {
+        // 対象テキストをパースし、配列を返す。
+        if(text == undefined) { return([]); } // このとき、プロパティ情報は更新されない
+        this.setText(text);
+        for(var i = 0; i < this.n; i++) { // 初期処理の配列でクォートを調べ、必要なものを統合する
+          this.i = i; // 参照情報に過ぎない。
+          this.x1 = this.x[i];
+          this.dc1 = this.n > 1 ? this.dc[i] : "";
           if(this.isEmptyBuff) {
             if(this.hasQuoteStart) {
               if(this.hasQuoteEnd) {
@@ -705,8 +618,53 @@ define(function(){
         return(this.v);
       }
       this.exec = exec;
+      
+      function pushQuotedItem() { // 単独で両端がクォート
+        this.v.push(unescapeString(this.x1, this.e));
+      }
+      this.pushQuotedItem = pushQuotedItem;
+      
+      function keepNewQuotedItem() { // 開始端がクォートで終了端が開放
+        this.continueKeepingQuotedItem(); // 処理は、継続中と同等
+      }
+      this.keepNewQuotedItem = keepNewQuotedItem;
+      
+      function pushNoQuoteItem() { // 単独でクォート無し
+        this.v.push(this.x1);
+      }
+      this.pushNoQuoteItem = pushNoQuoteItem;
+      
+      function pushKeptQuotedItem() { // 複合クォートの末端
+        this.buff.push(unescapeString(this.x1, this.e));
+        this.v.push(this.buff.join(""));
+        this.buff = [];
+      }
+      this.pushKeptQuotedItem = pushKeptQuotedItem;
+      
+      function continueKeepingQuotedItem() { // 複合クォートの内部継続中
+        this.buff.push(unescapeString(this.x1, this.e));
+        this.buff.push(this.dc1);
+      }
+      this.continueKeepingQuotedItem = continueKeepingQuotedItem;
+      
+      function flushBuff() { // 閉じそこねの末尾データ
+        this.v.push(this.buff.join(""));
+      }
+      this.flushBuff = flushBuff;
     }
     this.ParseStringCSV = ParseStringCSV;
+    
+    this.parseStringCSV = function(text) {
+      return((new ParseStringCSV).exec(text));
+    }
+    
+    this.parseStringJSON = function(text) {
+      if(text == undefined || text == null) { return([]); }
+      var unbracket = /^\s*\[(.*)\]\s*$/.exec(text);
+      if(unbracket == null) { return([text]); }
+      var parser = new ParseStringCSV(/\s*,\s*/, '"', EscJSON());
+      return(parser.exec(unbracket[1].trim()));
+    }
     
     function escapeRegExp(string){
       // by https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
@@ -714,31 +672,51 @@ define(function(){
     }
     this.escapeRegExp = escapeRegExp;
     
-    var EscCSV = { raw: ['"'], esc: ['""'] };
+    function EscCSV() {
+      return({ raw: ['"'], esc: ['""'] });
+    }
     this.EscCSV = EscCSV;
     
-    var EscJSON = { raw: ['\\', '"'], esc: ['\\\\', '\\"']};
+    function EscJSON() {
+      return({ raw: ['\\', '"'], esc: ['\\\\', '\\"']});
+    }
     this.EscJSON = EscJSON;
     
     function transcribeString(text, from, to) {
+      // from 列の文字を検索し、to列の対応する位置の文字に置換
+      var x = text == undefined || text == null ? "" : text.toString();
+      var f = Array.isArray(from) ? from : from == undefined || from == null ? [""] : [from];
+      var t = Array.isArray(to) ? to : to == undefined || to == null ? [""] : [to];
+      
+      var qq2 = [];
+      var r = {};
+      for(var k = 0; k < f.length; k++) {
+        qq2.push(escapeRegExp(f[k]));
+        r[f[k]] = t[k];
+      }
+      var qq = new RegExp(qq2.join("|"), "g");
+      
+      var x1 = x.split(qq);
+      var x2 = x.match(qq);
+      if(!Array.isArray(x2)) { x2 = []; }
+      var v = [];
+      for(var i = 0; i < x1.length; i++) {
+        v.push(x1[i]);
+        v.push(r[x2[i]]);
+      }
+      return(v.join(""));
     }
     this.transcribeString = transcribeString;
     
     function escapeString(text, escapes) {
+      return(transcribeString(text, escapes.raw, escapes.esc));
     }
     this.escapeString = escapeString;
     
     function unescapeString(text, escapes) {
+      return(transcribeString(text, escapes.esc, escapes.raw));
     }
     this.unescapeString = unescapeString;
-    
-    function quoteString(text, quotation) {
-    }
-    this.quoteString = quoteString;
-    
-    function unquoteString(text) {
-    }
-    this.unquoteString = unquoteString;
     
     /*############################
     KuroTable / this.table
@@ -770,127 +748,11 @@ define(function(){
   
   return(Kuro_base);
 });
+
 /*
-
-簡単な処理をつみあげていく。
-
-reset系とupdate系を明確に区別する。
-
-.resetByLength
-.resetByValues
-
-リセット系は上記のみか。
-
-
-.updateValues
-.updateValueAt
-
-updateValues は、
-必ずlength長の array を指定し、
-undefined な箇所は無視して、元のデータを保持する。
-つまり部分更新に使える。
-
-
-.value= は、
-update 系で、
-現在のlength, type を維持したまま、入力データを展開する。
-文字パースはせず、
-undefined -> すべてを初期値相当に。
-それ以外は、
-array だろうがそうでなかろうが、
-繰り返しまたは切り捨てによって、
-必要なlength のデータを得て、それで update する。
-
-
-簡単な処理をする便利関数やメソッドを用意する。
-
-.each(function(element){})
-_value[i].value を個々に関数処理した結果のarrayを返す。
-
-repeatArray(array, length)
-arrayを繰り返したり切り詰めたりして、指定lengthのものを返す。
-単一データが来れば、それの繰り返し配列。
-
-.increase(number)
-.decrease(number)
-.updateLength(length)
-
-現在のデータをできるだけ保持したまま、
-lengthを変更する。
-増減は必ず末尾を処理。
-
-.item(at, fn)
-指定位置の値など。
-
-.at(from, to, fn)
-指定範囲の値の配列を返す。
-to省略だと、
-from 位置の値を単一で返す。
-from, to に同じ値だと、
-from 位置の値が入った配列を返す。
-
-.select(array, fn)
-[true, false,,,] の配列をもらって、
-true 箇所だけを抽出したデータ配列を返す。
-標準は .value を使うが、
-fn でカスタマイズして、
-toString() を返したり、何か計算した結果を返したりできる。
-
-
-.filter(fn, fn)
-関数による条件抽出。
-
-
-.move(array)
-[true, false,,,] の配列をもらって、
-true 箇所だけを値を前につめて、残りは初期値とする。
-
-
-.clearItem(at)
-.clearAt(from,to)
-
-場所を指定して、値の消去。初期値にする。
-
-
-
-
-
-parseCSV(string, delimiter)
-刻んだ文字を返す。
-型変換はしない。個々のクラスの仕事。
-
-parseJSON(string)
-前後の[]を取って、parseCsvすればいい。
-
-
-
-flatArray(array)
-高次の配列を再帰的にばらして単純配列にする。
-
-
-
-quote(string, quotation)
-quotationで囲む。
-必要なら \ でエスケープする。
-\\も
-
-unquote(string, quotation)
-quotation囲みをはずす。
-\ エスケープを元に戻す。
-\\も
-囲まれてないなら何もしない。
-quotation指定がないなら、'"両方を探し、一方を実行する。
-
-
-
-
-
-
 数値の 0 を、
 "0" 表記するのか、
 "" ブランクとするのか、
 っていう選択肢が必要だろう。
 この際、ブランクからのパースも必要。
-
-
 */
