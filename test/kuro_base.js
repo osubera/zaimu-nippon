@@ -888,6 +888,7 @@ describe('Kuro_base.parseStringJSON', function(){
     expect(Kuro_base.parseStringJSON("[a,'b',c]")).to.deep.equal(["a","'b'","c"]);
     expect(Kuro_base.parseStringJSON('["a\"","b\"c"]')).to.deep.equal(['a"','b"c']);
     expect(Kuro_base.parseStringJSON('["a\"","b\",c,d,"]')).to.deep.equal(['a"','b",c,d,']);
+    // json のエスケープと regexp のエスケープが被って、うまくいってない模様。
   });
 });
 
