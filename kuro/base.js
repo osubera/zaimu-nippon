@@ -78,10 +78,17 @@ define(function(){
                         _value = parseNumber(value, this.defaultValue);
                       },
                       configurable: true },
-        "defaultValue": { value: 0, writable: true, configurable: true }
+        "defaultValue": { value: 0, writable: true, configurable: true },
+        "formatZeroAsBlank": { value: true, writable: true, configurable: true },
+        "formatThousands": { value: true, writable: true, configurable: true },
+        "formatMinusAsTriangle": { value: false, writable: true, configurable: true }
       });
       this.value = value;
       this.toString = function(){
+        if(this.value == 0 && this.formatZeroAsBlank) {
+          return("");
+        }
+        var s = this.value.toString();
         return(formatNumberThousands(this.value));
       };
       this.toAccountingString = function(){
@@ -93,7 +100,7 @@ define(function(){
     // 数値パース, カンマを緩く許可
     function parseNumber(x, fallback) {
       var v = (typeof x == "string") ?
-                 Number.parseFloat(x.trim().replace(/,/g, "").replace(/^△ */, "-")) :
+                 Number.parseFloat(x.replace(/[, ]/g, "").replace(/^△ */, "-")) :
                   x;
       return(v && v !== true ? v : fallback);
     }
@@ -762,12 +769,3 @@ define(function(){
   
   return(Kuro_base);
 });
-
-/*
-数値の 0 を、
-"0" 表記するのか、
-"" ブランクとするのか、
-っていう選択肢が必要だろう。
-toString に統一して、
-変換形式をぷろぱてぃで制御するよう変更する。
-*/

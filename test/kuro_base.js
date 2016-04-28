@@ -161,6 +161,9 @@ describe('Kuro_base.number', function(){
       it('should have properties', function(){
         expect(x).to.have.property('value', 0);
         expect(x).to.have.property('defaultValue', 0);
+        expect(x).to.have.property('formatZeroAsBlank', true);
+        expect(x).to.have.property('formatThousands', true);
+        expect(x).to.have.property('formatMinusAsTriangle', false);
       });
       it('should respond to methods', function(){
         expect(x).to.respondTo('toString');
@@ -202,6 +205,10 @@ describe('Kuro_base.number', function(){
         expect(x.toString()).to.equal('-87,654,321');
         expect(x.toAccountingString()).to.equal('△ 87,654,321');
         expect(y.toString()).to.equal('123,456,789.0123');
+        y.value = 0;
+        expect(y.toString()).to.equal('');
+        y.formatZeroAsBlank = false;
+        expect(y.toString()).to.equal('0');
       });
       it('should be stringified as JSON', function(){
         expect(x.toJSON()).to.equal(-87654321);
