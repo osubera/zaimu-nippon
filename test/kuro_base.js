@@ -672,13 +672,39 @@ describe('Kuro_base.list', function(){
         expect(x.value).not.to.deep.equal(['1,2,3']);
       });
       it('should reset items by these methods', function(){
-        // resetByLength, resetByValues
+        x.item(0, function(o){o.defaultValue = 999;});
+        expect(x.item(0, function(o){return o.defaultValue;})).to.equal(999);
+        x.resetByLength(2, 'string');
+        expect(x.item(0, function(o){return o.defaultValue;})).not.to.equal(999);
+        x.item(0, function(o){o.defaultValue = 'abc';});
+        expect(x.item(0, function(o){return o.defaultValue;})).to.equal('abc');
+        x.resetByValues([1,2,3]);
+        expect(x.item(0, function(o){return o.defaultValue;})).not.to.equal('abc');
       });
       it('should not reset items by these methods', function(){
-        // values =, updateValues, updateValueAt, 
-        // updateLength, increase, decrease
-        // move, clearItem, clearItemAt
-        // parseCSV, parseJSON
+        x.item(0, function(o){o.defaultValue = 999;});
+        x.values = [1,2];
+        x.item(0, function(o){o.defaultValue = 999;});
+        x.updateValues([1,2]);
+        x.item(0, function(o){o.defaultValue = 999;});
+        x.updateValueAt(2,3);
+        x.item(0, function(o){o.defaultValue = 999;});
+        x.updateLength(2);
+        x.item(0, function(o){o.defaultValue = 999;});
+        x.increase(2);
+        x.item(0, function(o){o.defaultValue = 999;});
+        x.decrease(1);
+        x.item(0, function(o){o.defaultValue = 999;});
+        x.move([true,false,true,true]);
+        x.item(0, function(o){o.defaultValue = 999;});
+        x.clearItem(1);
+        x.item(0, function(o){o.defaultValue = 999;});
+        x.clearAt(1, 2);
+        x.item(0, function(o){o.defaultValue = 999;});
+        x.parseCSV('3,1,4');
+        x.item(0, function(o){o.defaultValue = 999;});
+        x.parseCSV('[3,1,4]');
+        x.item(0, function(o){o.defaultValue = 999;});
       });
       it('should extract specified values', function(){
         x.resetByValues([1,3,5]);
@@ -724,18 +750,15 @@ describe('Kuro_base.list', function(){
         expect(y.value).to.deep.equal([0,0,0]);
       });
       it('should generate same type items', function(){
-        /*
-        x.value = ['A','long','time','ago'];
-        expect(x.value).to.deep.equal([0,0,0,0]);
-        x.value = ['1','2','3','4'];
-        expect(x.value).not.to.deep.equal(['1','2','3','4']);
-        expect(x.value).to.deep.equal([1,2,3,4]);
-        z.value = [1,2,3,4];
-        expect(z.value).not.to.deep.equal([1,2,3,4]);
-        expect(z.value).to.deep.equal(['1','2','3','4']);
-        */
+        x.resetByLength(4, 'number');
+        x.value = [1,2,'3rd','four'];
+        expect(x.value).to.deep.equal([1,2,3,0]);
+        x.resetByLength(4, 'string');
+        x.value = [1,2,'3rd','four'];
+        expect(x.value).to.deep.equal(['1','2','3rd','four']);
       });
       it('should change the default value', function(){
+        x.resetByValues([4,5]);
         x.defaultValue = 12;
         expect(x.defaultValue).to.equal(12);
         expect(x.each(function(o){ return o.defaultValue; })).to.deep.equal([12,12]);
