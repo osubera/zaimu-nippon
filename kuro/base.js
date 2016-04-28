@@ -355,6 +355,14 @@ define(function(){
       }
       this.updateValueAt = updateValueAt;
       
+      function parseCSV(text) {
+      }
+      this.parseCSV = parseCSV;
+      
+      function parseJSON(text) {
+      }
+      this.parseJSON = parseJSON;
+      
       function updateLength(length) {
         var diff = Number.parseInt(length) - this.length;
         if(diff > 0) { this.increase(diff); }
@@ -662,7 +670,7 @@ define(function(){
       if(text == undefined || text == null) { return([]); }
       var unbracket = /^\s*\[(.*)\]\s*$/.exec(text);
       if(unbracket == null) { return([text]); }
-      var parser = new ParseStringCSV(/\s*,\s*/, '"', EscJSON());
+      var parser = new ParseStringCSV(/\s*,\s*/g, '"', EscJSON());
       return(parser.exec(unbracket[1].trim()));
     }
     
@@ -679,6 +687,8 @@ define(function(){
     
     function EscJSON() {
       return({ raw: ['\\', '"'], esc: ['\\\\', '\\"']});
+      // 本来なら \u0022 など utf-16 形式も必要だが、対応していない。
+      // https://www.ietf.org/rfc/rfc4627.txt
     }
     this.EscJSON = EscJSON;
     
@@ -754,5 +764,6 @@ define(function(){
 "0" 表記するのか、
 "" ブランクとするのか、
 っていう選択肢が必要だろう。
-この際、ブランクからのパースも必要。
+toString に統一して、
+変換形式をぷろぱてぃで制御するよう変更する。
 */

@@ -531,11 +531,6 @@ describe('Kuro_base.list', function(){
         expect(x).to.respondTo('each');
         expect(x).to.respondTo('parseCSV');
         expect(x).to.respondTo('parseJSON');
-        expect(x).to.respondTo('lengthenArray');
-        expect(x).to.respondTo('flattenArray');
-        expect(x).to.respondTo('parseStringCSV');
-        expect(x).to.respondTo('quoteString');
-        expect(x).to.respondTo('unquoteString');
       });
       it('should be enumerable', function(){
         expect(x.propertyIsEnumerable('keys')).to.be.true;
@@ -886,9 +881,8 @@ describe('Kuro_base.parseStringJSON', function(){
     expect(Kuro_base.parseStringJSON('["a","b","c"]')).to.deep.equal(["a","b","c"]);
     expect(Kuro_base.parseStringJSON('["a",b,  c]')).to.deep.equal(["a","b","c"]);
     expect(Kuro_base.parseStringJSON("[a,'b',c]")).to.deep.equal(["a","'b'","c"]);
-    expect(Kuro_base.parseStringJSON('["a\"","b\"c"]')).to.deep.equal(['a"','b"c']);
-    expect(Kuro_base.parseStringJSON('["a\"","b\",c,d,"]')).to.deep.equal(['a"','b",c,d,']);
-    // json のエスケープと regexp のエスケープが被って、うまくいってない模様。
+    expect(Kuro_base.parseStringJSON('["a\\"","b\\"c"]')).to.deep.equal(['a"','b"c']);
+    expect(Kuro_base.parseStringJSON('["a\\"","b\\",c,\\\\d,"]')).to.deep.equal(['a"','b",c,\\d,']);
   });
 });
 
