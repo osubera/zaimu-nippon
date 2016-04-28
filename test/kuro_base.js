@@ -639,19 +639,18 @@ describe('Kuro_base.list', function(){
         expect(x.value).to.deep.equal([1,0,3,4,0,0,0,0,9]);
       });
       it('should parse string through methods', function(){
-        // parseCSV, parseJSON
-        /*
-        x.parse('1,2,3');
-        expect(x.value).to.deep.equal([1,2,3]);
-        x.parse('"A","long","time","ago"');
+        x.resetByLength(4, 'string');
+        expect(x.value).to.deep.equal(["","","",""]);
+        x.parseCSV('1,2,3');
+        expect(x.value).to.deep.equal(["1","2","3",""]);
+        x.parseCSV('"A","long","time","ago"');
         expect(x.value).to.deep.equal(['A','long','time','ago']);
-        x.parse('[1,2,3]');
-        expect(x.value).to.deep.equal([1,2,3]);
-        x.parse('["A","long","time","ago"]');
+        x.parseJSON('[1,2,3]');
+        expect(x.value).to.deep.equal(["1","2","3","ago"]);
+        x.parseJSON('["A","long","time","ago"]');
         expect(x.value).to.deep.equal(['A','long','time','ago']);
-        x.parse('[[1,2], {c:3}]');
-        expect(x.value).to.deep.equal([0,0]);
-        */
+        x.parseJSON('[[1,2], {c:3}]');
+        expect(x.value).to.deep.equal(['[1','2]','{c:3}','ago']);
       });
       it('should accept property value as an array or a basic type', function(){
         x.resetByLength(5, 'number');

@@ -356,10 +356,12 @@ define(function(){
       this.updateValueAt = updateValueAt;
       
       function parseCSV(text) {
+        this.updateValues(parseStringCSV(text));
       }
       this.parseCSV = parseCSV;
       
       function parseJSON(text) {
+        this.updateValues(parseStringJSON(text));
       }
       this.parseJSON = parseJSON;
       
@@ -662,17 +664,19 @@ define(function(){
     }
     this.ParseStringCSV = ParseStringCSV;
     
-    this.parseStringCSV = function(text) {
+    function parseStringCSV(text) {
       return((new ParseStringCSV).exec(text));
     }
+    this.parseStringCSV = parseStringCSV;
     
-    this.parseStringJSON = function(text) {
+    function parseStringJSON(text) {
       if(text == undefined || text == null) { return([]); }
       var unbracket = /^\s*\[(.*)\]\s*$/.exec(text);
       if(unbracket == null) { return([text]); }
       var parser = new ParseStringCSV(/\s*,\s*/g, '"', EscJSON());
       return(parser.exec(unbracket[1].trim()));
     }
+    this.parseStringJSON = parseStringJSON;
     
     function escapeRegExp(string){
       // by https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
