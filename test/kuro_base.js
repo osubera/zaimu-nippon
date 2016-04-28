@@ -765,12 +765,6 @@ describe('Kuro_base.list', function(){
         x.increase(2);
         expect(x.value).to.deep.equal([4,5,12,12]);
       });
-      it('should change the default type', function(){
-      });
-      it('should have builtin factories', function(){
-      });
-      it('should change factories', function(){
-      });
       it('should return ordinal numbers as keys', function(){
         x.resetByLength(4);
         expect(x.keys).to.deep.equal([0,1,2,3]);
@@ -791,9 +785,35 @@ describe('Kuro_base.list', function(){
         expect(x.toJSON()).to.deep.equal(["a","b","c"]);
         expect(JSON.stringify(x)).to.equal('["a","b","c"]');
       });
+      it('should change the default type', function(){
+        var x = new Kuro_base.list;
+        x.resetByLength(1);
+        expect(x.value).to.deep.equal([0]);
+        x.defaultType = 'string';
+        x.resetByLength(1);
+        expect(x.value).to.deep.equal(['']);
+        x.defaultType = 'boolean';
+        x.resetByLength(1);
+        expect(x.value).to.deep.equal([false]);
+      });
       it('should have constructor factories', function(){
+        expect(x.factories).to.be.an('object');
+        expect(x.factories.number).to.be.a('function');
+        expect(x.factories.string).to.be.a('function');
+        expect(x.factories.boolean).to.be.a('function');
+        expect(x.factories.date).to.be.a('function');
       });
       it('should have updatable factories', function(){
+        x.factories = { hoge: function(){this.fuga = 'huge';} };
+        expect(x.factories).to.be.an('object');
+        expect(x.factories.hoge).to.be.a('function');
+        expect(x.factories.number).to.equal(undefined);
+        expect(x.factories.string).to.equal(undefined);
+        expect(x.factories.boolean).to.equal(undefined);
+        expect(x.factories.date).to.equal(undefined);
+        x.resetByLength(1, 'hoge');
+        expect(x.item(0, function(o){return o;})).to.be.an('object');
+        expect(x.item(0, function(o){return o.fuga;})).to.equal('huge');
       });
     });
   });
