@@ -52,8 +52,11 @@
         s2.element = s2box;
         a.element = abox;
         
+        /*
+        これだと、value への更新との前後関係が保証されない。
         s1box.addEventListener("change", calc);
         s2box.addEventListener("change", calc);
+        */
         document.getElementById("calc").addEventListener("click", calc);
       });
     });
