@@ -24,8 +24,6 @@ describe('Kuro_base', function(){
     expect(Kuro_base).itself.to.respondTo('parseString');
     expect(Kuro_base).itself.to.respondTo('parseNumber');
     expect(Kuro_base).itself.to.respondTo('parseDate');
-    expect(Kuro_base).itself.to.respondTo('formatNumberThousands');
-    expect(Kuro_base).itself.to.respondTo('formatNumberTriangle');
     expect(Kuro_base).itself.to.respondTo('formatDateYmd');
     expect(Kuro_base).itself.to.respondTo('lengthenArray');
     expect(Kuro_base).itself.to.respondTo('flattenArray');
@@ -167,7 +165,6 @@ describe('Kuro_base.number', function(){
       });
       it('should respond to methods', function(){
         expect(x).to.respondTo('toString');
-        expect(x).to.respondTo('toAccountingString');
       });
       var y = new Kuro_base.number(123456789.0123);
       it('should be initialized with', function(){
@@ -200,10 +197,16 @@ describe('Kuro_base.number', function(){
       });
       it('should be stringified', function(){
         expect(x.toString()).to.equal('777');
-        expect(x.toAccountingString()).to.equal('777');
+        x.formatMinusAsTriangle = true;
+        expect(x.toString()).to.equal('777');
         x.value = -87654321;
+        expect(x.toString()).to.equal('△ 87,654,321');
+        x.formatThousands = false;
+        expect(x.toString()).to.equal('△ 87654321');
+        x.formatMinusAsTriangle = false;
+        expect(x.toString()).to.equal('-87654321');
+        x.formatThousands = true;
         expect(x.toString()).to.equal('-87,654,321');
-        expect(x.toAccountingString()).to.equal('△ 87,654,321');
         expect(y.toString()).to.equal('123,456,789.0123');
         y.value = 0;
         expect(y.toString()).to.equal('');
@@ -236,32 +239,6 @@ describe('Kuro_base.parseNumber', function(){
   it('should use default value', function(){
     expect(Kuro_base.parseNumber(undefined, 789)).to.equal(789);
     expect(Kuro_base.parseNumber(true, 789)).to.equal(789);
-  });
-});
-
-describe('Kuro_base.formatNumberThousands', function(){
-  it('should be a function', function(){
-    expect(Kuro_base.formatNumberThousands).to.be.a('function');
-  });
-  it('should return string formatted with comma', function(){
-    expect(Kuro_base.formatNumberThousands(123)).to.equal('123');
-    expect(Kuro_base.formatNumberThousands(123.4567)).to.equal('123.4567');
-    expect(Kuro_base.formatNumberThousands(1234567)).to.equal('1,234,567');
-    expect(Kuro_base.formatNumberThousands(12345678.9012)).to.equal('12,345,678.9012');
-    expect(Kuro_base.formatNumberThousands(-123456789)).to.equal('-123,456,789');
-  });
-});
-
-describe('Kuro_base.formatNumberTriangle', function(){
-  it('should be a function', function(){
-    expect(Kuro_base.formatNumberTriangle).to.be.a('function');
-  });
-  it('should return string formatted with comma and triangle', function(){
-    expect(Kuro_base.formatNumberTriangle(123)).to.equal('123');
-    expect(Kuro_base.formatNumberTriangle(123.4567)).to.equal('123.4567');
-    expect(Kuro_base.formatNumberTriangle(1234567)).to.equal('1,234,567');
-    expect(Kuro_base.formatNumberTriangle(12345678.9012)).to.equal('12,345,678.9012');
-    expect(Kuro_base.formatNumberTriangle(-123456789)).to.equal('△ 123,456,789');
   });
 });
 

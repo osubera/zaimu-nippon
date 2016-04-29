@@ -84,15 +84,22 @@ define(function(){
         "formatMinusAsTriangle": { value: false, writable: true, configurable: true }
       });
       this.value = value;
+      
       this.toString = function(){
         if(this.value == 0 && this.formatZeroAsBlank) {
           return("");
         }
         var s = this.value.toString();
-        return(formatNumberThousands(this.value));
-      };
-      this.toAccountingString = function(){
-        return(formatNumberTriangle(this.value));
+        if(this.formatThousands) { // 3桁,区切りに
+          // toLocaleString()には、小数点以下を3桁丸めする副作用がある。
+          var r = /\./.test(s) ? /\B(?=(?:\d{3})+\.)/g : /\B(?=(?:\d{3})+$)/g;
+          /*        小数点     ?  小数点より前まで  :  最後まで             */
+          s = s.replace(r, ",");
+        }
+        if(this.formatMinusAsTriangle) { // マイナスを△表記
+          s = s.replace(/-/, "△ ");
+        }
+        return(s);
       };
     }
     this.number = KuroNumber;
@@ -105,24 +112,6 @@ define(function(){
       return(v && v !== true ? v : fallback);
     }
     this.parseNumber = parseNumber;
-    
-    // 3桁,区切りに
-    function formatNumberThousands(x) {
-      /* return(x.toLocaleString());
-      toLocaleStringには、小数点以下を3桁丸めする副作用がある。
-      */
-      var s = x.toString();
-      var reg = /\./.test(s) ? /\B(?=(?:\d{3})+\.)/g : /\B(?=(?:\d{3})+$)/g;
-      /*            小数点     ?  小数点より前まで  :  最後まで             */
-      return(s.replace(reg, ","));
-    }
-    this.formatNumberThousands = formatNumberThousands;
-    
-    // マイナスを△表記
-    function formatNumberTriangle(x) {
-      return(formatNumberThousands(x).replace(/-/, "△ "));
-    }
-    this.formatNumberTriangle = formatNumberTriangle;
     
     /*############################
     KuroDate / this.date
