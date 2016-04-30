@@ -15,18 +15,64 @@ define(function(){
     ベース変数のコンストラクタ
     ############################*/
     
-    function KuroVar(value){
+    function KuroVar(value, element){
       var _value;
+      var _element;
       Object.defineProperties(this, {
         "value": { get: function(){ return _value; },
-                      set: function(value){ _value = value; },
-                      configurable: true },
-        "defaultValue": { value: undefined, writable: true, configurable: true }
+                   set: function(value){
+                     _value = value;
+                     this.dispatchEvent(new Event("valuechange"));
+                   },
+                   configurable: true },
+        "defaultValue": { value: undefined, writable: true, configurable: true },
+        "element": { get: function(){ return _element; },
+                     set: function(element){ setElement(element); },
+                     configurable: true }
       });
       this.value = value;
+      this.element = element;
+      
       this.toJSON = function(){
         return(this.value);
       };
+      
+      /*############################
+      イベントによる同期
+      ############################*/
+      
+      this.addEventListner("valuechange", onValueChange);
+      this.addEventListner("textchange", onTextChange);
+      
+      function onValueChange(e) {
+        if(!_element) { return; }
+        updateToElement();
+      }
+      
+      function onTextChange(e) {
+        if(!_element) { return; }
+        updateFromElement();
+      }
+      
+      function onBoxChange(e) {
+        this.dispatchEvent(new Event("textchange"));
+      }
+      
+      function setElement(element) {
+        _element = element;
+        _element.addEventListner("change", onBoxChange, true);
+      }
+      this.setElement = setElement;
+      
+      function updateToElement() {
+        _element.innerText = this.toString();
+      }
+      this.updateToElement = updateToElement;
+      
+      function updateFromElement() {
+        this.value = _element.innerText;
+      }
+      this.updateFromElement = updateFromElement;
     }
     this.var = KuroVar;
     
