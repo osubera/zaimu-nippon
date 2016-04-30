@@ -6,7 +6,7 @@ Kuro_base, as a static class
 伝票システム向けの共通コンストラクタ、関数
 ############################*/
 
-define(function(){
+define(['kuro/event'], function(Kuro_event){
   
   var Kuro_base = new function(){
     
@@ -22,14 +22,21 @@ define(function(){
         "value": { get: function(){ return _value; },
                    set: function(value){
                      _value = value;
-                     this.dispatchEvent(new Event("valuechange"));
+                     this.reactor.dispatchEvent("valuechange");
                    },
                    configurable: true },
         "defaultValue": { value: undefined, writable: true, configurable: true },
+        "reactor": { value: new Kuro_event.reactor, configurable: true },
         "element": { get: function(){ return _element; },
-                     set: function(element){ setElement(element); },
+                     set: function(element){ setElement(element, this); },
                      configurable: true }
       });
+      
+      this.reactor.registerEvent("valuechange");
+      this.reactor.registerEvent("textchange");
+      this.reactor.addEventListener("valuechange", onValueChange);
+      this.reactor.addEventListener("textchange", onTextChange);
+      
       this.value = value;
       this.element = element;
       
@@ -41,26 +48,28 @@ define(function(){
       イベントによる同期
       ############################*/
       
-      this.addEventListner("valuechange", onValueChange);
-      this.addEventListner("textchange", onTextChange);
-      
       function onValueChange(e) {
+        console.log("onValueChange");
         if(!_element) { return; }
         updateToElement();
       }
       
       function onTextChange(e) {
+        console.log("onTextChange");
         if(!_element) { return; }
         updateFromElement();
       }
       
       function onBoxChange(e) {
-        this.dispatchEvent(new Event("textchange"));
+        console.log("onBoxChange");
+        this.kuro.reactor.dispatchEvent("textchange");
       }
       
-      function setElement(element) {
+      function setElement(element, obj) {
         _element = element;
-        _element.addEventListner("change", onBoxChange, true);
+        if(!_element) { return; }
+        _element.kuro = obj;
+        _element.addEventListener("change", onBoxChange, true);
       }
       this.setElement = setElement;
       
