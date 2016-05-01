@@ -6,7 +6,7 @@ Kuro_base, as a static class
 伝票システム向けの共通コンストラクタ、関数
 ############################*/
 
-define(['kuro/event'], function(Kuro_event){
+define(function(){
   
   var Kuro_base = new function(){
     
@@ -22,21 +22,14 @@ define(['kuro/event'], function(Kuro_event){
         "value": { get: function(){ return _value; },
                    set: function(value){
                      _value = value;
-                     this.reactor.dispatchEvent("valuechange");
+                     onValueChange(this);
                    },
                    configurable: true },
         "defaultValue": { value: undefined, writable: true, configurable: true },
-        "reactor": { value: new Kuro_event.reactor, configurable: true },
         "element": { get: function(){ return _element; },
                      set: function(element){ setElement(element, this); },
                      configurable: true }
       });
-      
-      this.reactor.registerEvent("valuechange");
-      this.reactor.registerEvent("textchange");
-      this.reactor.addEventListener("valuechange", onValueChange);
-      this.reactor.addEventListener("textchange", onTextChange);
-      
       this.value = value;
       this.element = element;
       
@@ -45,41 +38,44 @@ define(['kuro/event'], function(Kuro_event){
       };
       
       /*############################
-      イベントによる同期
+      同期
       ############################*/
       
-      function onValueChange(e) {
+      function onValueChange(obj) {
         console.log("onValueChange");
         if(!_element) { return; }
-        updateToElement();
+        updateToElement(obj);
       }
+      this.onValueChange = onValueChange;
       
-      function onTextChange(e) {
+      function onTextChange(obj) {
         console.log("onTextChange");
         if(!_element) { return; }
-        updateFromElement();
+        updateFromElement(obj);
       }
       
       function onBoxChange(e) {
         console.log("onBoxChange");
-        this.kuro.reactor.dispatchEvent("textchange");
+        onTextChange(this.kuro);
+        //this.kuro.onTextChange();
       }
       
       function setElement(element, obj) {
         _element = element;
         if(!_element) { return; }
         _element.kuro = obj;
+        onValueChange(obj);
         _element.addEventListener("change", onBoxChange, true);
       }
       this.setElement = setElement;
       
-      function updateToElement() {
-        _element.innerText = this.toString();
+      function updateToElement(obj) {
+        _element.value = obj.toString();
       }
       this.updateToElement = updateToElement;
       
-      function updateFromElement() {
-        this.value = _element.innerText;
+      function updateFromElement(obj) {
+        obj.value = _element.value;
       }
       this.updateFromElement = updateFromElement;
     }

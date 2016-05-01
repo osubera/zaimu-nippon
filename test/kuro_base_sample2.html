@@ -38,8 +38,10 @@
         
         function calc() {
           console.log('calc');
-          console.log(s1.value);
+          //console.log(s1.value);
           a.value = s1.value + s2.value;
+          //console.log(a.value);
+          //a.onValueChange(a);
         }
         
         var s1box = document.getElementById('kamiki');
@@ -48,7 +50,7 @@
         
         var s1 = new Kuro_base.number(1000000);
         var s2 = new Kuro_base.number(2000000);
-        var a = new Kuro_base.number();
+        var a = new Kuro_base.var();
         
         s1.element = s1box;
         s2.element = s2box;
