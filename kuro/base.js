@@ -11,73 +11,132 @@ define(function(){
   var Kuro_base = new function(){
     
     /*############################
+    Syncher / this.syncher
+    DOM element と値同期するコンストラクタ
+    ############################*/
+    
+    function Syncer(kuro, element, onVar, onBox){
+      var _element;
+      Object.defineProperties(this, {
+        "kuro": { value: undefined, writable: true, configurable: true },
+        "element": { get: function(){ return _element; },
+                     set: function(element){
+                       _element = this.setElement(element);
+                     },
+                     configurable: true },
+                     /*
+        "onVar": { value: this.defaultOnVar, writable: true,
+                   configurable: true },
+        "onBox": { value: this.defaultOnBox, writable: true,
+                   configurable: true },
+                   */
+        "ready": { get: function(){
+                     return this.kuro && this.element;
+//                       && this.onVar && this.onBox;
+                   },
+                   configurable: true }
+      });
+      
+      /*
+      function defaultOnVar() {
+        this.element.value = this.kuro.toString();
+      }
+      this.defaultOnVar = defaultOnVar;
+      
+      function defaultOnBox() {
+        this.kuro.value = this.element.value;
+      }
+      this.defaultOnBox = defaultOnBox;
+      */
+      function onVar() {
+        this.element.value = this.kuro.toString();
+      }
+      this.onVar = onVar;
+      
+      function onBox() {
+        // `this` is the element
+        this.kuro.value = this.value;
+      }
+      this.onBox = onBox;
+      
+      function setElement(element) {
+        if(!element) { return; }
+        element.kuro = this.kuro;
+        element.addEventListener("change", this.onBox, true);
+        return(element);
+      }
+      this.setElement = setElement;
+      
+      if(!onVar) { this.onVar = onVar; }
+      if(!onBox) { this.onBox = onBox; }
+      this.kuro = kuro;
+      this.element = element;
+      
+      function updateByVar() {
+        if(!this.ready) { return; }
+        this.onVar();
+      }
+      this.updateByVar = updateByVar;
+      
+      function updateByBox() {
+        if(!this.ready) { return; }
+        this.onBox();
+      }
+      this.updateByBox = updateByBox;
+    }
+    this.syncer = Syncer;
+    
+    /*############################
     KuroVar / this.var
     ベース変数のコンストラクタ
     ############################*/
     
     function KuroVar(value, element){
       var _value;
-      var _element;
+      var _sync;
       Object.defineProperties(this, {
         "value": { get: function(){ return _value; },
                    set: function(value){
-                     _value = value;
-                     onValueChange(this);
+                     _value = this.parseValue(value);
+                     this.syncValue();
                    },
                    configurable: true },
         "defaultValue": { value: undefined, writable: true, configurable: true },
-        "element": { get: function(){ return _element; },
-                     set: function(element){ setElement(element, this); },
-                     configurable: true }
+        "sync": { get: function(){ return _sync; },
+                  set: function(element){
+                    _sync = this.setElement(element); },
+                  configurable: true }
       });
-      this.value = value;
-      this.element = element;
+      
+      function parseValue(x) {
+        return(x);
+      }
+      this.parseValue = parseValue;
+      
+      function syncValue() {
+        if(!this.sync) { return; }
+        this.sync.updateByVar();
+      }
+      this.syncValue = syncValue;
+      
+      function setElement(element) {
+        if(!element) { return; }
+        return(new Syncer(this, element));
+      }
+      this.setElement = setElement;
+      
+      this.toString = function(){
+        var x = this.value;
+        return(x == undefined || x == null ? "" : x.toString());
+      };
       
       this.toJSON = function(){
         return(this.value);
       };
       
-      /*############################
-      同期
-      ############################*/
-      
-      function onValueChange(obj) {
-        console.log("onValueChange");
-        if(!_element) { return; }
-        updateToElement(obj);
-      }
-      this.onValueChange = onValueChange;
-      
-      function onTextChange(obj) {
-        console.log("onTextChange");
-        if(!_element) { return; }
-        updateFromElement(obj);
-      }
-      
-      function onBoxChange(e) {
-        console.log("onBoxChange");
-        onTextChange(this.kuro);
-        //this.kuro.onTextChange();
-      }
-      
-      function setElement(element, obj) {
-        _element = element;
-        if(!_element) { return; }
-        _element.kuro = obj;
-        onValueChange(obj);
-        _element.addEventListener("change", onBoxChange, true);
-      }
-      this.setElement = setElement;
-      
-      function updateToElement(obj) {
-        _element.value = obj.toString();
-      }
-      this.updateToElement = updateToElement;
-      
-      function updateFromElement(obj) {
-        obj.value = _element.value;
-      }
-      this.updateFromElement = updateFromElement;
+      // 初期化
+      this.sync = element;
+      this.value = value;
     }
     this.var = KuroVar;
     
