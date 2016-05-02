@@ -6,6 +6,9 @@
       width: 40%;
       padding-left: 10%;
     }
+    input {
+      text-align: right;
+    }
     .sales {
       text-align: right;
     }
@@ -37,30 +40,22 @@
         }
         
         function calc() {
-          console.log('calc');
-          //console.log(s1.value);
           a.value = s1.value + s2.value;
-          //console.log(a.value);
-          //a.onValueChange(a);
         }
         
         var s1box = document.getElementById('kamiki');
         var s2box = document.getElementById('simoki');
         var abox = document.getElementById('nendo');
         
-        var s1 = new Kuro_base.var(1000000, s1box);
-        var s2 = new Kuro_base.var(2000000, s2box);
-        var a = new Kuro_base.var(0, abox);
+        var s1 = new Kuro_base.number(1000000, s1box);
+        var s2 = new Kuro_base.number(2000000, s2box);
+        var a = new Kuro_base.number(0, abox);
         /*
         s1.sync = s1box;
         s2.sync = s2box;
         a.sync = abox;
         */
         
-        /*
-        これだと、value への更新との前後関係が保証されない。?
-        capture false ならok?
-        */
         s1box.addEventListener("change", calc);
         s2box.addEventListener("change", calc);
         document.getElementById("calc").addEventListener("click", calc);

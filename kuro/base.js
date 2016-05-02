@@ -130,23 +130,33 @@ define(function(){
     文字変数のコンストラクタ
     ############################*/
     
-    function KuroString(value) {
+    function KuroString(value, element) {
       KuroVar.call(this);
       
       var _value;
       Object.defineProperties(this, {
         "value": { get: function(){ return _value; },
-                      set: function(value) {
-                        _value = parseString(value, this.defaultValue, this.trim);
-                      },
-                      configurable: true },
+                   set: function(value) {
+                     this.parseValue(value);
+                     this.syncValue();
+                   },
+                   configurable: true },
         "defaultValue": { value: "", writable: true, configurable: true },
         "trim": { value: true, writable: true, configurable: true }
       });
-      this.value = value;
+      
+      function parseValue(value) {
+        _value = parseString(value, this.defaultValue, this.trim);
+      }
+      this.parseValue = parseValue;
+      
       this.toString = function(){
         return(this.value);
       };
+      
+      // 初期化
+      this.sync = element;
+      this.value = value;
     }
     this.string = KuroString;
     
@@ -163,22 +173,27 @@ define(function(){
     数値変数のコンストラクタおよび補助関数
     ############################*/
     
-    function KuroNumber(value) {
+    function KuroNumber(value, element) {
       KuroVar.call(this);
       
       var _value;
       Object.defineProperties(this, {
         "value": { get: function(){ return _value; },
-                      set: function(value) {
-                        _value = parseNumber(value, this.defaultValue);
-                      },
-                      configurable: true },
+                   set: function(value) {
+                     this.parseValue(value);
+                     this.syncValue();
+                   },
+                   configurable: true },
         "defaultValue": { value: 0, writable: true, configurable: true },
         "formatZeroAsBlank": { value: true, writable: true, configurable: true },
         "formatThousands": { value: true, writable: true, configurable: true },
         "formatMinusAsTriangle": { value: false, writable: true, configurable: true }
       });
-      this.value = value;
+      
+      function parseValue(value) {
+        _value = parseNumber(value, this.defaultValue);
+      }
+      this.parseValue = parseValue;
       
       this.toString = function(){
         if(this.value == 0 && this.formatZeroAsBlank) {
@@ -196,6 +211,10 @@ define(function(){
         }
         return(s);
       };
+      
+      // 初期化
+      this.sync = element;
+      this.value = value;
     }
     this.number = KuroNumber;
     
@@ -213,27 +232,37 @@ define(function(){
     日付変数のコンストラクタおよび補助関数
     ############################*/
     
-    function KuroDate(value) {
+    function KuroDate(value, element) {
       KuroVar.call(this);
       
       var _value;
       Object.defineProperties(this, {
         "value": { get: function(){ return _value; },
-                      set: function(value) {
-                        _value = parseDate(value, this.defaultValue);
-                      } ,
-                      configurable: true },
+                   set: function(value) {
+                     this.parseValue(value);
+                     this.syncValue();
+                   } ,
+                   configurable: true },
         "defaultValue": { value: today(), writable: true, configurable: true },
         "formatSeparator": { value: "/", writable: true, configurable: true },
         "formatMonthFillZero": { value: true, writable: true, configurable: true },
         "formatDayFillZero": { value: true, writable: true, configurable: true }
       });
-      this.value = value;
+      
+      function parseValue(value) {
+        _value = parseDate(value, this.defaultValue);
+      }
+      this.parseValue = parseValue;
+      
       this.toString = function(){
         return(formatDateYmd(this.value,
           this.formatSeparator, this.formatMonthFillZero, this.formatDayFillZero));
       };
       this.toJSON = this.toString;
+      
+      // 初期化
+      this.sync = element;
+      this.value = value;
     }
     this.date = KuroDate;
     
@@ -271,25 +300,35 @@ define(function(){
     論理変数のコンストラクタ
     ############################*/
     
-    function KuroBoolean(value) {
-        KuroVar.call(this);
+    function KuroBoolean(value, element) {
+      KuroVar.call(this);
       
       var _value;
       Object.defineProperties(this, {
         "value": { get: function(){ return _value; },
-                      set: function(value) {
-                        _value = parseBoolean(value, this.defaultValue,
-                          this.formatTrue, this.formatFalse);
-                      } ,
-                      configurable: true },
+                   set: function(value) {
+                     this.parseValue(value);
+                     this.syncValue();
+                   },
+                   configurable: true },
         "defaultValue": { value: false, writable: true, configurable: true },
         "formatTrue": { value: "true", writable: true, configurable: true },
         "formatFalse": { value: "false", writable: true, configurable: true }
       });
-      this.value = value;
+      
+      function parseValue(value) {
+        _value = parseBoolean(value, this.defaultValue,
+          this.formatTrue, this.formatFalse);
+      }
+      this.parseValue = parseValue;
+      
       this.toString = function(){
         return(this.value ? this.formatTrue : this.formatFalse);
       };
+      
+      // 初期化
+      this.sync = element;
+      this.value = value;
     }
     this.boolean = KuroBoolean;
     
