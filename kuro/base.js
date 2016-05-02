@@ -24,45 +24,33 @@ define(function(){
                        _element = this.setElement(element);
                      },
                      configurable: true },
-                     /*
-        "onVar": { value: this.defaultOnVar, writable: true,
-                   configurable: true },
-        "onBox": { value: this.defaultOnBox, writable: true,
-                   configurable: true },
-                   */
         "ready": { get: function(){
                      return this.kuro && this.element;
-//                       && this.onVar && this.onBox;
                    },
                    configurable: true }
       });
       
-      /*
-      function defaultOnVar() {
-        this.element.value = this.kuro.toString();
-      }
-      this.defaultOnVar = defaultOnVar;
-      
-      function defaultOnBox() {
-        this.kuro.value = this.element.value;
-      }
-      this.defaultOnBox = defaultOnBox;
-      */
       function onVar() {
         this.element.value = this.kuro.toString();
       }
       this.onVar = onVar;
       
+      
       function onBox() {
-        // `this` is the element
-        this.kuro.value = this.value;
+        this.kuro.parseValue(this.element.value);
+        /*
+        addEventListener で bind(this) したので this は syncer
+        bind(this) しなければ this は element なので、次のようにする
+        //this.kuro.parseValue(this.value);
+        */
       }
       this.onBox = onBox;
       
       function setElement(element) {
         if(!element) { return; }
-        element.kuro = this.kuro;
-        element.addEventListener("change", this.onBox, true);
+        element.kuro = this.kuro; // 今のところ使っていない
+        element.addEventListener("change", this.onBox.bind(this), true);
+        // caputuring phase で、再計算前に value 更新する
         return(element);
       }
       this.setElement = setElement;
@@ -97,7 +85,7 @@ define(function(){
       Object.defineProperties(this, {
         "value": { get: function(){ return _value; },
                    set: function(value){
-                     _value = this.parseValue(value);
+                     this.parseValue(value);
                      this.syncValue();
                    },
                    configurable: true },
@@ -108,8 +96,8 @@ define(function(){
                   configurable: true }
       });
       
-      function parseValue(x) {
-        return(x);
+      function parseValue(value) {
+        _value = value;
       }
       this.parseValue = parseValue;
       
