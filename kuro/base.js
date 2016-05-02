@@ -35,14 +35,11 @@ define(function(){
       }
       this.onVar = onVar;
       
-      
       function onBox() {
         this.kuro.parseValue(this.element.value);
-        /*
-        addEventListener で bind(this) したので this は syncer
-        bind(this) しなければ this は element なので、次のようにする
+        //addEventListener で bind(this) したので this は syncer
+        //bind(this) しなければ this は element なので、次のようにする
         //this.kuro.parseValue(this.value);
-        */
       }
       this.onBox = onBox;
       
