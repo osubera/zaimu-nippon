@@ -25,7 +25,7 @@ define(function(){
                      },
                      configurable: true },
         "ready": { get: function(){
-                     return this.kuro && this.element;
+                     return !(!this.kuro || !this.element);
                    },
                    configurable: true }
       });
@@ -888,7 +888,7 @@ define(function(){
     function KuroRow(value) {
     }
     this.row = KuroRow;
-  };
+    };
   
   return(Kuro_base);
 });

@@ -13,6 +13,7 @@ describe('Kuro_base', function(){
     expect(Kuro_base).to.be.an('object');
   });
   it('should respond to methods', function(){
+    expect(Kuro_base).itself.to.respondTo('syncer');
     expect(Kuro_base).itself.to.respondTo('var');
     expect(Kuro_base).itself.to.respondTo('string');
     expect(Kuro_base).itself.to.respondTo('number');
@@ -39,6 +40,32 @@ describe('Kuro_base', function(){
   });
 });
 
+describe('Kuro_base.syncer', function(){
+  it('should be a function', function(){
+    expect(Kuro_base.syncer).to.be.a('function');
+  });
+  it('should be a constructor', function(){
+    var x = new Kuro_base.syncer;
+    expect(x).to.be.an('object')
+      .and.to.be.instanceOf(Kuro_base.syncer);
+    
+    describe('new Kuro_base.syncer', function(){
+      it('should have properties', function(){
+        expect(x).to.have.property('kuro', undefined);
+        expect(x).to.have.property('element', undefined);
+        expect(x).to.have.property('ready', false);
+      });
+      it('should respond to methods', function(){
+        expect(x).to.respondTo('onVar');
+        expect(x).to.respondTo('onBox');
+        expect(x).to.respondTo('setElement');
+        expect(x).to.respondTo('updateByVar');
+        expect(x).to.respondTo('updateByBox');
+      });
+    });
+  });
+});
+
 describe('Kuro_base.var', function(){
   it('should be a function', function(){
     expect(Kuro_base.var).to.be.a('function');
@@ -52,8 +79,13 @@ describe('Kuro_base.var', function(){
       it('should have properties', function(){
         expect(x).to.have.property('value', undefined);
         expect(x).to.have.property('defaultValue', undefined);
+        expect(x).to.have.property('sync', undefined);
       });
       it('should respond to methods', function(){
+        expect(x).to.respondTo('parseValue');
+        expect(x).to.respondTo('syncValue');
+        expect(x).to.respondTo('setElement');
+        expect(x).to.respondTo('toString');
         expect(x).to.respondTo('toJSON');
       });
       var y = new Kuro_base.var('anything');
@@ -83,9 +115,13 @@ describe('Kuro_base.string', function(){
       it('should have properties', function(){
         expect(x).to.have.property('value', '');
         expect(x).to.have.property('defaultValue', '');
+        expect(x).to.have.property('sync', undefined);
         expect(x).to.have.property('trim', true);
       });
       it('should respond to methods', function(){
+        expect(x).to.respondTo('parseValue');
+        expect(x).to.respondTo('syncValue');
+        expect(x).to.respondTo('setElement');
         expect(x).to.respondTo('toString');
         expect(x).to.respondTo('toJSON');
       });
@@ -159,12 +195,17 @@ describe('Kuro_base.number', function(){
       it('should have properties', function(){
         expect(x).to.have.property('value', 0);
         expect(x).to.have.property('defaultValue', 0);
+        expect(x).to.have.property('sync', undefined);
         expect(x).to.have.property('formatZeroAsBlank', true);
         expect(x).to.have.property('formatThousands', true);
         expect(x).to.have.property('formatMinusAsTriangle', false);
       });
       it('should respond to methods', function(){
+        expect(x).to.respondTo('parseValue');
+        expect(x).to.respondTo('syncValue');
+        expect(x).to.respondTo('setElement');
         expect(x).to.respondTo('toString');
+        expect(x).to.respondTo('toJSON');
       });
       var y = new Kuro_base.number(123456789.0123);
       it('should be initialized with', function(){
@@ -255,12 +296,17 @@ describe('Kuro_base.date', function(){
       it('should have properties', function(){
         expect(x).to.have.property('value');
         expect(x).to.have.property('defaultValue');
+        expect(x).to.have.property('sync', undefined);
         expect(x).to.have.property('formatSeparator', '/');
         expect(x).to.have.property('formatMonthFillZero', true);
         expect(x).to.have.property('formatDayFillZero', true);
       });
       it('should respond to methods', function(){
+        expect(x).to.respondTo('parseValue');
+        expect(x).to.respondTo('syncValue');
+        expect(x).to.respondTo('setElement');
         expect(x).to.respondTo('toString');
+        expect(x).to.respondTo('toJSON');
       });
       it('should have dafault value today (construction date)', function(){
         expect(x.value).to.deep.equal(x.defaultValue);
@@ -378,11 +424,16 @@ describe('Kuro_base.boolean', function(){
       it('should have properties', function(){
         expect(x).to.have.property('value', false);
         expect(x).to.have.property('defaultValue', false);
+        expect(x).to.have.property('sync', undefined);
         expect(x).to.have.property('formatTrue', 'true');
         expect(x).to.have.property('formatFalse', 'false');
       });
       it('should respond to methods', function(){
+        expect(x).to.respondTo('parseValue');
+        expect(x).to.respondTo('syncValue');
+        expect(x).to.respondTo('setElement');
         expect(x).to.respondTo('toString');
+        expect(x).to.respondTo('toJSON');
       });
       var y = new Kuro_base.boolean(true);
       it('should be initialized with', function(){
