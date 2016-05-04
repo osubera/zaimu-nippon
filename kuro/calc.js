@@ -104,22 +104,19 @@ define(function(){
     
     function Solv(self, root) {
       Object.defineProperties(this, {
-        "self": { value: undefined, writable: true, configurable: true },
-        "children": { value: [], writable: true, configurable: true },
-        "parents": { value: [], writable: true, configurable: true },
-        "isRoot": { value: false, writable: true, configurable: true },
+        "self": { value: undefined, writable: true },
+        "children": { value: [] },
+        "parents": { value: [] },
+        "isRoot": { value: false, writable: true },
         "isLeaf": { get: function(){
                       return this.children.length == 0;
-                    },
-                    configurable: true },
+                    }},
         "hasBranch": { get: function(){
                          return this.children.length > 1;
-                       },
-                       configurable: true },
+                       }},
         "hasMerge": { get: function(){
                         return this.parents.length > 1;
-                      },
-                      configurable: true }
+                      }}
       });
       this.self = self;
       this.isRoot = !!root;
