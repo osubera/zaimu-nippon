@@ -63,8 +63,51 @@ define(function(){
     ############################*/
     
     function Calc() {
+        "funcs": { value: [] },
+        "ids": { value: [], writable: true },
+        "solves": { value: [], writable: true },
+        "unsolved": { get: function(){
+                        return this.solves.length > 0;
+                      }},
+        "root": { get: function(){
+                    return this.solves[0];
+                  }},
     }
     this.calc = Calc;
+    
+    Calc.prototype.makeRoot = function(){
+      this.solves = [new Solv(undefined, true)];
+      this.ids = ["root"];
+    }
+    
+    Calc.prototype.addTree = function(start){
+    }
+    
+    Calc.prototype.makeTree = function(start){
+      this.makeRoot();
+      this.addTree(start);
+    }
+    
+    Calc.prototype.makeAllTrees = function(){
+      this.makeRoot();
+      while(true) {
+        var start = this.getFirstUnlistedFunc();
+        if(start === null) { break; }
+        this.addTree(start);
+      }
+    }
+    
+    Calc.prototype.getFirstUnlistedFunc = function(){
+    }
+    
+    Calc.prototype.getFirstLeaf = function(){
+    }
+    
+    Calc.prototype.getIdByVar = function(kuro){
+    }
+    
+    Calc.prototype.getVarById = function(id){
+    }
     
     /*
     calc
