@@ -81,6 +81,30 @@ define(function(){
     }
     
     Calc.prototype.addTree = function(start){
+      this.solves.push(new Solv(start));
+      this.ids.push(start);
+      this.root.children.push(start);
+      this.sprout(start);
+    }
+    
+    Calc.prototype.sprout = function(at){
+      var solv = this.getSolvById(at);
+      var func = this.funcs[solv.self];
+      var dep = func.depends;
+      for(var i = 0; i < dep.length; i++) {
+        var child = this.getIdByVar(dep[i]);
+        solv.addChild(child);
+        if(this.isIdListed(child)) {
+          var childSolv = this.getSolvById(child);
+          childSolv.addParent(at);
+          continue;
+        }
+        var childSolv = new Solv(child);
+        this.solves.push(childSolv);
+        this.ids.push(child);
+        childSolv.addParent(at);
+        this.sprout(child);
+      }
     }
     
     Calc.prototype.makeTree = function(start){
@@ -107,6 +131,15 @@ define(function(){
     }
     
     Calc.prototype.getVarById = function(id){
+    }
+    
+    Calc.prototype.getIdBySolv = function(solv){
+    }
+    
+    Calc.prototype.getSolvById = function(id){
+    }
+    
+    Calc.prototype.isIdListed = function(id){
     }
     
     /*
