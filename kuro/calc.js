@@ -75,6 +75,15 @@ define(function(){
     }
     this.calc = Calc;
     
+    /*
+    ほとんどのケースで、計算式は設計時に決まっていて、
+    実行時には変更されない。
+    よって、初期に1度だけtreeを作れば、
+    あとはそれを使いまわせるはず。
+    そのポリシーを制御するフラグも作る。
+    計算時にtreeの要素を消さないで消しこみをする手段を考える。
+    */
+    
     Calc.prototype.makeRoot = function(){
       this.solves = [new Solv(undefined, true)];
       this.ids = ["root"];
