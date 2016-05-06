@@ -63,6 +63,7 @@ define(function(){
     ############################*/
     
     function Calc() {
+      Object.defineProperties(this, {
         "funcs": { value: [] },
         "ids": { value: [], writable: true },
         "solves": { value: [], writable: true },
@@ -72,6 +73,7 @@ define(function(){
         "root": { get: function(){
                     return this.solves[0];
                   }},
+      });
     }
     this.calc = Calc;
     
@@ -83,6 +85,30 @@ define(function(){
     そのポリシーを制御するフラグも作る。
     計算時にtreeの要素を消さないで消しこみをする手段を考える。
     */
+    
+    /*############################
+    計算実行
+    ############################*/
+    
+    Calc.prototype.calc = function(force){
+      while(true) {
+        var leaf = this.getFirstLeaf();
+        if(leaf === nothing) {
+          if(this.countRemains() == 0) {
+            // 計算終了
+          } else {
+            // 循環
+          }
+        }
+        // leaf の計算
+        // 計算済みをセット
+        leaf.needCalc = false;
+      }
+    }
+    
+    /*############################
+    計算樹生成
+    ############################*/
     
     Calc.prototype.makeRoot = function(){
       this.solves = [new Solv(undefined, true)];
@@ -102,18 +128,29 @@ define(function(){
       var dep = func.depends;
       for(var i = 0; i < dep.length; i++) {
         var child = this.getIdByVar(dep[i]);
-        solv.addChild(child);
         if(this.isIdListed(child)) {
-          var childSolv = this.getSolvById(child);
-          childSolv.addParent(at);
-          continue;
+          this.addOldChild(at, child);
+        } else {
+          this.addNewChild(at, child);
+          this.sprout(child);
         }
-        var childSolv = new Solv(child);
-        this.solves.push(childSolv);
-        this.ids.push(child);
-        childSolv.addParent(at);
-        this.sprout(child);
       }
+    }
+    
+    Calc.prototype.addNewChild(at, child){
+      var solv = this.getSolvById(at);
+      var childSolv = new Solv(child);
+      this.solves.push(childSolv);
+      this.ids.push(child);
+      childSolv.addParent(at);
+      solv.addChild(child);
+    }
+    
+    Calc.prototype.addOldChild(at, child){
+      var solv = this.getSolvById(at);
+      var childSolv = this.getSolvById(child);
+      childSolv.addParent(at);
+      solv.addChild(child);
     }
     
     Calc.prototype.makeTree = function(start){
@@ -130,10 +167,17 @@ define(function(){
       }
     }
     
+    /*############################
+    正引き、逆引き、検索
+    ############################*/
+    
     Calc.prototype.getFirstUnlistedFunc = function(){
     }
     
     Calc.prototype.getFirstLeaf = function(){
+    }
+    
+    Calc.prototype.countRemains = function(){
     }
     
     Calc.prototype.getIdByVar = function(kuro){
