@@ -184,7 +184,7 @@ define(function(){
     
     /*############################
     Solv / this.solv
-    依存逆引きのコンストラクタ
+    計算樹の要素のコンストラクタ
     ############################*/
     
     function Solv(self, root) {
@@ -192,8 +192,18 @@ define(function(){
         "self": { value: undefined, writable: true },
         "children": { value: [] },
         "parents": { value: [] },
+        "needCalc": { value: false, writable: true },
         "isRoot": { value: false, writable: true },
         "isLeaf": { get: function(){
+                      var kids = this.children;
+                      for(var i = 0; i < kids.length; i ++) {
+                        if(kids[i].needCalc) {
+                          return false;
+                        }
+                      }
+                      return true;
+                    }},
+        "noChildren": { get: function(){
                       return this.children.length == 0;
                     }},
         "hasBranch": { get: function(){
