@@ -96,11 +96,16 @@ define(function(){
         if(leaf === nothing) {
           if(this.countRemains() == 0) {
             // 計算終了
+            return;
           } else {
             // 循環
+            var message = "\u5FAA\u74B0";
+            throw new Error(message);
           }
         }
         // leaf の計算
+        var func = getFuncBySolv(leaf);
+        func.calc(force);
         // 計算済みをセット
         leaf.needCalc = false;
       }
@@ -190,6 +195,9 @@ define(function(){
     }
     
     Calc.prototype.getSolvById = function(id){
+    }
+    
+    Calc.prototype.getFuncBySolv = function(solv){
     }
     
     Calc.prototype.isIdListed = function(id){
