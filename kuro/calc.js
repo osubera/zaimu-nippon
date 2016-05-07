@@ -84,12 +84,19 @@ define(function(){
     あとはそれを使いまわせるはず。
     そのポリシーを制御するフラグも作る。
     計算時にtreeの要素を消さないで消しこみをする手段を考える。
+    
+    tree固定なら、funcの計算順序も固定できるので、
+    最終的には func の配列を保持すればいい。
+    それを順に計算していくだけでいい。
     */
     
     /*############################
     計算実行
     ############################*/
     
+    /*
+    この内容は実行でなく、計算順序作成。
+    */
     Calc.prototype.calc = function(force){
       while(true) {
         var leaf = this.getFirstLeaf();
@@ -99,6 +106,10 @@ define(function(){
             return;
           } else {
             // 循環
+            /*
+            処理を固定しないで、
+            this.onError を呼び出す方式にする。
+            */
             var message = "\u5FAA\u74B0";
             throw new Error(message);
           }
@@ -115,6 +126,14 @@ define(function(){
     計算樹生成
     ############################*/
     
+    /*
+    root 不要。
+    parentをたどるのでなく、leafを処理していくだけなので。
+    parent と child の意味が逆っぽいので、入れ替えた方がわかりいいかも。
+    現状は、 child が depend になっているので、
+    child 末端から計算していく。
+    あるセルが変わったとき影響を受ける相手は parent の側になっている。
+    */
     Calc.prototype.makeRoot = function(){
       this.solves = [new Solv(undefined, true)];
       this.ids = ["root"];
@@ -158,6 +177,9 @@ define(function(){
       solv.addChild(child);
     }
     
+    /*
+    部分的再作成は意味がないし、難しいのでしない。
+    */
     Calc.prototype.makeTree = function(start){
       this.makeRoot();
       this.addTree(start);
