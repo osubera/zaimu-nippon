@@ -44,6 +44,7 @@ define(function(){
     this.func = Func;
     
     Func.prototype.calc = function(force){
+      // lastArgs にセットする値は、 dep[i].cloneValue() とかで取り出す。
     }
     
     /*
