@@ -29,7 +29,8 @@ define(function(){
                            var arg = this.lastArgs;
                            var n = dep.length;
                            for(var i = 0; i < n; i++) {
-                             if(arg[i] !== dep[i].value) {
+//                             if(arg[i] !== dep[i].value) {
+                             if(dep[i].compareValue(arg[i]) != 0) {
 //    日付タイプの比較は値比較にしないといけない。
 // kuro_var 側に、値比較とか clone の処理を追加した方がいい？
                                return true;
@@ -96,6 +97,7 @@ define(function(){
         "ids": { value: [], writable: true },
         "solves": { value: [], writable: true },
         "serializedFuncs": { value: [], writable: true },
+        "rebuildRequired": { value: false, writable: true },
         "unsolved": { get: function(){
                         return this.solves.length > 0;
                       }},
@@ -272,6 +274,15 @@ define(function(){
       // func 生成
       // funcs , ids 登録
       // DOMイベントリスナー生成
+      // removeFuncByVar して、重複を避ける。
+      // rebuildRequired フラグをたてる
+    }
+    
+    Calc.prototype.removeFuncAt = function(at){
+      // 間をあけないよう、場所をつめる。
+    }
+    
+    Calc.prototype.removeFuncByVar = function(cell){
     }
     
     /*############################
