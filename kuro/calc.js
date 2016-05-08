@@ -21,18 +21,16 @@ define(function(){
         "func": { value: undefined, writable: true },
         "depends": { value: [], writable: true },
         "lastArgs": { value: [], writable: true },
-        "auto": { value: undefined, writable: true },
-        "verbose": { value: undefined, writable: true },
-        "recalcRequired": { value: undefined, writable: true },
+        "auto": { value: true, writable: true },
+        "verbose": { value: false, writable: true },
+        "tag": { value: "", writable: true },
+        "recalcRequired": { value: false, writable: true },
         "argsChanged": { get: function(){
                            var dep = this.depends;
                            var arg = this.lastArgs;
                            var n = dep.length;
                            for(var i = 0; i < n; i++) {
-//                             if(arg[i] !== dep[i].value) {
                              if(dep[i].compareValue(arg[i]) != 0) {
-//    日付タイプの比較は値比較にしないといけない。
-// kuro_var 側に、値比較とか clone の処理を追加した方がいい？
                                return true;
                              }
                            }
@@ -44,7 +42,21 @@ define(function(){
     this.func = Func;
     
     Func.prototype.calc = function(force){
-      // lastArgs にセットする値は、 dep[i].cloneValue() とかで取り出す。
+      if(!force && !this.recalcRequired && !this.argsChanged) {
+        return; // 計算しない
+      }
+      var dep = this.depends;
+      var n = dep.length;
+      var arg = [];
+      for(var i = 0; i < n; i++) {
+        arg.push(dep[i].cloneValue());
+      }
+      this.lastArgs = arg;
+      if(this.verbose) {
+        console.log('func.calc: ' + this.tag + ": " + arg);
+      }
+      this.func.apply(null, arg); // 計算実行
+      this.recalcRequired = false;
     }
     
     /*
@@ -271,7 +283,7 @@ define(function(){
     計算式登録
     ############################*/
     
-    Calc.prototype.addFunc = function(cell, func, depends, auto, verbose){
+    Calc.prototype.addFunc = function(cell, func, depends, auto, verbose, tag){
       // func 生成
       // funcs , ids 登録
       // DOMイベントリスナー生成
