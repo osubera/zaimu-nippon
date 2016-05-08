@@ -16,14 +16,42 @@ define(function(){
     ############################*/
     
     function Func() {
+      Object.defineProperties(this, {
+        "cell": { value: undefined, writable: true },
+        "func": { value: undefined, writable: true },
+        "depends": { value: [], writable: true },
+        "lastArgs": { value: [], writable: true },
+        "auto": { value: undefined, writable: true },
+        "verbose": { value: undefined, writable: true },
+        "recalcRequired": { value: undefined, writable: true },
+        "argsChanged": { get: function(){
+                           var dep = this.depends;
+                           var arg = this.lastArgs;
+                           var n = dep.length;
+                           for(var i = 0; i < n; i++) {
+                             if(arg[i] !== dep[i].value) {
+//    日付タイプの比較は値比較にしないといけない。
+// kuro_var 側に、値比較とか clone の処理を追加した方がいい？
+                               return true;
+                             }
+                           }
+                           return false;
+                         }
+                       }
+      });
     }
     this.func = Func;
+    
+    Func.prototype.calc = function(force){
+    }
+    
     /*
     calc
     実際に呼び出されるコールバック
     引数をセットしてfuncを呼ぶ
     手動計算用に、強制フラグを持つ。
     lastArgs と recalcRequired をリセットする。
+    日付タイプのときは clone しないといけない。
     
     func
     func.apply(null, [4,5,6,7]);
