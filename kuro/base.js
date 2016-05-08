@@ -546,7 +546,7 @@ define(function(){
         // 内部変数 _value を直接呼ぶので継承できない。
         var x = Number.parseInt(number);
         if(x < 0) {
-          throw new RangeError('must be positive and within length');
+          throw new RangeError('must be positive');
         }
         var co = this.factory;
         for(var i = 0; i < x; i++) {
@@ -561,7 +561,7 @@ define(function(){
         // 内部変数 _value を直接呼ぶので継承できない。
         var x = Number.parseInt(number);
         if(x < 0 || x > _value.length ) {
-          throw new RangeError('must be positive');
+          throw new RangeError('must be positive and within length');
         }
         for(var i = 0; i < x; i++) {
           _value.pop();
