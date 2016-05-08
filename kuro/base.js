@@ -110,6 +110,25 @@ define(function(){
       }
       this.setElement = setElement;
       
+      function cloneValue() {
+        return(this.value);
+      }
+      this.cloneValue = cloneValue;
+      
+      function compareValue(toValue) {
+        var me = this.value;
+        if(me === toValue) {
+          return(0);  // equal
+        } else if(me > toValue) {
+          return(1);  // me is larger
+        } else if(me < toValue) {
+          return(-1);  // me is smaller
+        } else {
+          return(NaN);  // not comparable
+        }
+      }
+      this.compareValue = compareValue;
+      
       this.toString = function(){
         var x = this.value;
         return(x == undefined || x == null ? "" : x.toString());
@@ -254,6 +273,27 @@ define(function(){
       }
       this.parseValue = parseValue;
       
+      function cloneValue() {
+        return(new Date(this.value));
+      }
+      this.cloneValue = cloneValue;
+      
+      function compareValue(toValue) {
+        var me = this.value.getTime();
+        if(!toValue || !toValue.getTime) {
+          return(NaN);  // not comparable
+        }
+        var to = toValue.getTime();
+        if(me == to) {
+          return(0);  // equal
+        } else if(me > to) {
+          return(1);  // me is larger
+        } else if(me < to) {
+          return(-1);  // me is smaller
+        }
+      }
+      this.compareValue = compareValue;
+      
       this.toString = function(){
         return(formatDateYmd(this.value,
           this.formatSeparator, this.formatMonthFillZero, this.formatDayFillZero));
@@ -269,7 +309,7 @@ define(function(){
     // 日付パース
     function parseDate(x, fallback) {
       var v = Date.parse(x);
-      return(v && v !== true ? new Date(v) : fallback);
+      return(new Date(v && v !== true ? v : fallback));
     }
     this.parseDate = parseDate;
     

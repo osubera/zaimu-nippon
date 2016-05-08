@@ -85,6 +85,8 @@ describe('Kuro_base.var', function(){
         expect(x).to.respondTo('parseValue');
         expect(x).to.respondTo('syncValue');
         expect(x).to.respondTo('setElement');
+        expect(x).to.respondTo('cloneValue');
+        expect(x).to.respondTo('compareValue');
         expect(x).to.respondTo('toString');
         expect(x).to.respondTo('toJSON');
       });
@@ -121,6 +123,8 @@ describe('Kuro_base.string', function(){
       it('should respond to methods', function(){
         expect(x).to.respondTo('parseValue');
         expect(x).to.respondTo('syncValue');
+        expect(x).to.respondTo('cloneValue');
+        expect(x).to.respondTo('compareValue');
         expect(x).to.respondTo('setElement');
         expect(x).to.respondTo('toString');
         expect(x).to.respondTo('toJSON');
@@ -158,6 +162,21 @@ describe('Kuro_base.string', function(){
         expect(x.trim).to.be.false;
         x.value = '    A long time ago,     ';
         expect(x.value).to.equal('    A long time ago,     ');
+      });
+      it('should clone value', function(){
+        var m = 'clone me';
+        x.value = m;
+        var n = x.cloneValue();
+        expect(n).to.equal(m);
+        n = 'clone should not change the original';
+        expect(n).not.to.equal(x.value);
+      });
+      it('should compare value', function(){
+        x.value = 'compare me';
+        expect(x.compareValue('compare me')).to.equal(0);
+        expect(x.compareValue('ampere meet')).to.equal(1);
+        expect(x.compareValue('compare meat')).to.equal(-1);
+        expect(x.compareValue(true)).to.deep.equal(NaN);
       });
     });
   });
@@ -204,6 +223,8 @@ describe('Kuro_base.number', function(){
         expect(x).to.respondTo('parseValue');
         expect(x).to.respondTo('syncValue');
         expect(x).to.respondTo('setElement');
+        expect(x).to.respondTo('cloneValue');
+        expect(x).to.respondTo('compareValue');
         expect(x).to.respondTo('toString');
         expect(x).to.respondTo('toJSON');
       });
@@ -257,6 +278,22 @@ describe('Kuro_base.number', function(){
       it('should be stringified as JSON', function(){
         expect(x.toJSON()).to.equal(-87654321);
       });
+      it('should clone value', function(){
+        var m = 1234;
+        x.value = m;
+        var n = x.cloneValue();
+        expect(n).to.equal(m);
+        n = 5678;
+        expect(n).not.to.equal(x.value);
+      });
+      it('should compare value', function(){
+        x.value = 5;
+        expect(x.compareValue(5)).to.equal(0);
+        expect(x.compareValue(3)).to.equal(1);
+        expect(x.compareValue(7)).to.equal(-1);
+        expect(x.compareValue('9')).to.equal(-1);
+        expect(x.compareValue('one')).to.deep.equal(NaN);
+      });
     });
   });
 });
@@ -305,6 +342,8 @@ describe('Kuro_base.date', function(){
         expect(x).to.respondTo('parseValue');
         expect(x).to.respondTo('syncValue');
         expect(x).to.respondTo('setElement');
+        expect(x).to.respondTo('cloneValue');
+        expect(x).to.respondTo('compareValue');
         expect(x).to.respondTo('toString');
         expect(x).to.respondTo('toJSON');
       });
@@ -357,6 +396,25 @@ describe('Kuro_base.date', function(){
         x.formatMonthFillZero = false;
         x.formatDayFillZero = false;
         expect(x.toJSON()).to.equal('2012/3/1');
+      });
+      it('should clone value', function(){
+        var m = new Date(2016,5,8);
+        x.value = m;
+        var n = x.cloneValue();
+        expect(x.value).to.deep.equal(m);
+        expect(x.value).not.to.equal(m);
+        expect(x.value).to.deep.equal(n);
+        expect(x.value).not.to.equal(n);
+        n = new Date(2015,5,8);
+        expect(n).not.to.deep.equal(x.value);
+      });
+      it('should compare value', function(){
+        x.value = new Date(2016,5,8);
+        expect(x.compareValue(new Date(2016,5,8))).to.equal(0);
+        expect(x.compareValue(new Date(2016,5,7))).to.equal(1);
+        expect(x.compareValue(new Date(2016,5,9))).to.equal(-1);
+        expect(x.compareValue('2016/5/8')).to.deep.equal(NaN);
+        expect(x.compareValue(undefined)).to.deep.equal(NaN);
       });
     });
   });
@@ -432,6 +490,8 @@ describe('Kuro_base.boolean', function(){
         expect(x).to.respondTo('parseValue');
         expect(x).to.respondTo('syncValue');
         expect(x).to.respondTo('setElement');
+        expect(x).to.respondTo('cloneValue');
+        expect(x).to.respondTo('compareValue');
         expect(x).to.respondTo('toString');
         expect(x).to.respondTo('toJSON');
       });
@@ -502,6 +562,25 @@ describe('Kuro_base.boolean', function(){
       });
       it('should be stringified as JSON', function(){
         expect(x.toJSON()).to.equal(false);
+      });
+      it('should clone value', function(){
+        var m = true;
+        x.value = m;
+        var n = x.cloneValue();
+        expect(n).to.equal(m);
+        n = false;
+        expect(n).not.to.equal(x.value);
+      });
+      it('should compare value', function(){
+        x.value = true;
+        expect(x.compareValue(true)).to.equal(0);
+        expect(x.compareValue(false)).to.equal(1);
+        expect(x.compareValue(0)).to.equal(1);
+        expect(x.compareValue('false')).to.deep.equal(NaN);
+        expect(x.compareValue('balse')).to.deep.equal(NaN);
+        x.value = false;
+        expect(x.compareValue(true)).to.equal(-1);
+        expect(x.compareValue(1)).to.equal(-1);
       });
     });
   });
