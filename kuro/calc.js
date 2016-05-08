@@ -42,6 +42,9 @@ define(function(){
     this.func = Func;
     
     Func.prototype.calc = function(force){
+      if(this.cell == undefined || this.func == undefined) {
+        return; // 計算しない
+      }
       if(!force && !this.recalcRequired && !this.argsChanged) {
         return; // 計算しない
       }
@@ -49,7 +52,11 @@ define(function(){
       var n = dep.length;
       var arg = [];
       for(var i = 0; i < n; i++) {
-        arg.push(dep[i].cloneValue());
+        if(dep[i].cloneValue) {
+          arg.push(dep[i].cloneValue());
+        } else {
+          arg.push(dep[i]);  // 基本型の定数値と判断
+        }
       }
       this.lastArgs = arg;
       if(this.verbose) {
@@ -286,16 +293,36 @@ define(function(){
     Calc.prototype.addFunc = function(cell, func, depends, auto, verbose, tag){
       // func 生成
       // funcs , ids 登録
-      // DOMイベントリスナー生成
+      // syncが有効なら、DOMイベントリスナー生成
+      //   再計算フラグを立てる。
+      //   自動計算モードなら、calc.calc実行する。
+      //   この２つをまとめて処理する汎用なのを、Calcが持っておいたら楽か？
+      // この時、remove用に無名関数の情報を登録しておく。
       // removeFuncByVar して、重複を避ける。
       // rebuildRequired フラグをたてる
     }
     
     Calc.prototype.removeFuncAt = function(at){
-      // 間をあけないよう、場所をつめる。
+      // DOMイベントリスナー解除が必要。
+      // element.removeEventListener('change', listenerFunc, false)
+      // みたいなことをやらないといけないので、
+      // addEventListener のときに、生成した関数を覚えておくか、
+      // remove用の関数を登録しておくか、しないといけないようだ。
+      // func.removeEventListener() ってので削除するのがスマート？
+      var funcs = this.funcs;
+      if(at < 0 || at >= funcs.length) {
+        throw new RangeError('array index out of range');
+      }
+      funcs[at] == new Func;
+      // 空の Func object で埋めれば、計算要求は無視される。
+      // idがずれないので rebuildRequired しなくてよい。
+      // きれいに詰めたいなら、 new Calc からのやり直しが早い。
     }
     
     Calc.prototype.removeFuncByVar = function(cell){
+      var at = this.getIdByVar(cell);
+      if(at == null) { return; }
+      this.removeFuncAt(at);
     }
     
     /*############################
