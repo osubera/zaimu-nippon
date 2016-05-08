@@ -33,7 +33,7 @@ define(function(){
     引数順で、依存objectの配列を持つ
     基本型の定数を混ぜることができる
     
-    var
+    cell
     計算結果を格納するobjectを持つ
     
     lastArgs
@@ -67,12 +67,56 @@ define(function(){
         "funcs": { value: [] },
         "ids": { value: [], writable: true },
         "solves": { value: [], writable: true },
+        "serializedFuncs": { value: [], writable: true },
         "unsolved": { get: function(){
                         return this.solves.length > 0;
                       }},
-        "root": { get: function(){
-                    return this.solves[0];
-                  }},
+        "auto": { get: function(){
+                    var funcs = this.funcs;
+                    var n = funcs.length;
+                    if(n == 0) { return undefined; }
+                    var res = funcs[0].auto;
+                    for(var i = 1; i < n; i++) {
+                      if(res !== funcs[i].auto) { return undefined; }
+                    }
+                    return res;
+                  },
+                  set: function(auto){
+                    var funcs = this.funcs;
+                    for(var i = 0; i < funcs.length; i++) {
+                      funcs[i].auto = auto;
+                    }
+                  }
+                },
+        "verbose": { get: function(){
+                       var funcs = this.funcs;
+                       var n = funcs.length;
+                       if(n == 0) { return undefined; }
+                       var res = funcs[0].verbose;
+                       for(var i = 1; i < n; i++) {
+                         if(res !== funcs[i].verbose) { return undefined; }
+                       }
+                       return res;
+                     },
+                     set: function(verbose){
+                       var funcs = this.funcs;
+                       for(var i = 0; i < funcs.length; i++) {
+                         funcs[i].verbose = verbose;
+                       }
+                     }
+                   },
+        "recalcRequired": { get: function(){
+                              var funcs = this.funcs;
+                              var n = funcs.length;
+                              for(var i = 0; i < n; i++) {
+                                if(funcs[i].recalcRequired ||
+                                   funcs[i].argsChanged) {
+                                     return true;
+                                }
+                              }
+                              return false;
+                            }
+                          }
       });
     }
     this.calc = Calc;
@@ -94,49 +138,55 @@ define(function(){
     計算実行
     ############################*/
     
-    /*
-    この内容は実行でなく、計算順序作成。
-    */
+    Calc.prototype.calcForce = function(){
+      this.calc(true);
+    }
+    
     Calc.prototype.calc = function(force){
+      var funcs = this.serializedFuncs;
+      var n = funcs.length;
+      for(var i = 0; i < n; i++) {
+        funcs[i].calc(force);
+      }
+    }
+    
+    /*############################
+    計算樹翻訳
+    ############################*/
+    
+    Calc.prototype.serializeTree = function(){
+      this.serializedFuncs = [];
       while(true) {
         var leaf = this.getFirstLeaf();
         if(leaf === nothing) {
-          if(this.countRemains() == 0) {
-            // 計算終了
-            return;
-          } else {
-            // 循環
-            /*
-            処理を固定しないで、
-            this.onError を呼び出す方式にする。
-            */
-            var message = "\u5FAA\u74B0";
-            throw new Error(message);
+          // 計算できる端点がなくなれば終了
+          var err = this.unsolved;
+          if(err) {
+            // 端点が無いのに未処理があれば、循環
+            this.onCyclicError();
           }
+          return(!err);
         }
-        // leaf の計算
-        var func = getFuncBySolv(leaf);
-        func.calc(force);
-        // 計算済みをセット
+        // 計算序列に追加
+        this.serializedFuncs.push(getFuncBySolv(leaf));
+        // 処理済みにする
         leaf.needCalc = false;
       }
+    }
+    
+    Calc.prototype.onCyclicError = function(){
+      // デフォルトの循環エラー処理
+      var message = "\u5FAA\u74B0";
+      throw new Error(message);
     }
     
     /*############################
     計算樹生成
     ############################*/
     
-    /*
-    root 不要。
-    parentをたどるのでなく、leafを処理していくだけなので。
-    parent と child の意味が逆っぽいので、入れ替えた方がわかりいいかも。
-    現状は、 child が depend になっているので、
-    child 末端から計算していく。
-    あるセルが変わったとき影響を受ける相手は parent の側になっている。
-    */
-    Calc.prototype.makeRoot = function(){
-      this.solves = [new Solv(undefined, true)];
-      this.ids = ["root"];
+    Calc.prototype.clearTree = function(){
+      this.solves = [];
+      this.ids = [];
     }
     
     Calc.prototype.addTree = function(start){
@@ -177,21 +227,23 @@ define(function(){
       solv.addChild(child);
     }
     
-    /*
-    部分的再作成は意味がないし、難しいのでしない。
-    */
-    Calc.prototype.makeTree = function(start){
-      this.makeRoot();
-      this.addTree(start);
-    }
-    
-    Calc.prototype.makeAllTrees = function(){
-      this.makeRoot();
+    Calc.prototype.makeTree = function(){
+      this.clearTree();
       while(true) {
         var start = this.getFirstUnlistedFunc();
         if(start === null) { break; }
         this.addTree(start);
       }
+    }
+    
+    /*############################
+    計算式登録
+    ############################*/
+    
+    Calc.prototype.addFunc = function(cell, func, depends, auto, verbose){
+      // func 生成
+      // funcs , ids 登録
+      // DOMイベントリスナー生成
     }
     
     /*############################
@@ -204,16 +256,15 @@ define(function(){
     Calc.prototype.getFirstLeaf = function(){
     }
     
-    Calc.prototype.countRemains = function(){
-    }
-    
-    Calc.prototype.getIdByVar = function(kuro){
+    Calc.prototype.getIdByVar = function(cell){
     }
     
     Calc.prototype.getVarById = function(id){
+      // 未使用
     }
     
     Calc.prototype.getIdBySolv = function(solv){
+      // 未使用
     }
     
     Calc.prototype.getSolvById = function(id){
@@ -259,15 +310,15 @@ define(function(){
     /*############################
     Solv / this.solv
     計算樹の要素のコンストラクタ
+    child側が依存先で、先に計算する。
     ############################*/
     
-    function Solv(self, root) {
+    function Solv(self) {
       Object.defineProperties(this, {
         "self": { value: undefined, writable: true },
         "children": { value: [] },
         "parents": { value: [] },
         "needCalc": { value: false, writable: true },
-        "isRoot": { value: false, writable: true },
         "isLeaf": { get: function(){
                       var kids = this.children;
                       for(var i = 0; i < kids.length; i ++) {
@@ -288,7 +339,6 @@ define(function(){
                       }}
       });
       this.self = self;
-      this.isRoot = !!root;
     }
     this.solv = Solv;
     
