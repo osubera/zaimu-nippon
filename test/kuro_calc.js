@@ -6,8 +6,16 @@ requirejs.config({
   baseUrl: '.'
 });
 
-var Kuro_base = requirejs('kuro/base');
 var Kuro_calc = requirejs('kuro/calc');
+var Kuro_base = requirejs('kuro/base');
+var Mock_base = requirejs('mock/base');
+function mockConsole(fn) {
+  var kon = new Mock_base.console;
+  kon.mockOriginal = console.log;
+  console.log = kon.log.bind(kon);
+  fn(kon);
+  console.log = kon.mockOriginal;
+}
 
 describe('Kuro_calc', function(){
   it('should be an object', function(){
@@ -61,6 +69,27 @@ describe('Kuro_calc.func', function(){
         x.lastArgs = [1,3,3];
         expect(x.argsChanged).to.equal(true);
       });
+      it('should not calc when', function(){mockConsole(function(kon){
+        var y = new Kuro_calc.func;
+        y.verbose = true;
+        y.tag = 'TEST';
+        y.calc();
+        expect(kon.mockGetLastCall()).to.equal('console: log,func.calc: TEST quit by undefined.');
+        y.cell = 1;
+        y.calc();
+        expect(kon.mockGetLastCall()).to.equal('console: log,func.calc: TEST quit by undefined.');
+        y.cell = undefined;
+        y.func = 1;
+        y.calc();
+        expect(kon.mockGetLastCall()).to.equal('console: log,func.calc: TEST quit by undefined.');
+        y.cell = 1;
+        y.auto = false;
+        y.calc();
+        expect(kon.mockGetLastCall()).to.equal('console: log,func.calc: TEST quit by not auto.');
+        y.auto = true;
+        y.calc();
+        expect(kon.mockGetLastCall()).to.equal('console: log,func.calc: TEST quit by not required.');
+      })});
     });
   });
 });
