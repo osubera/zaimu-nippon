@@ -26,28 +26,36 @@ define(function(){
         "tag": { value: "", writable: true },
         "recalcRequired": { value: false, writable: true },
         "argsChanged": { get: function(){
-                           var dep = this.depends;
-                           var arg = this.lastArgs;
-                           var n = dep.length;
-                           for(var i = 0; i < n; i++) {
-                             if(dep[i].compareValue(arg[i]) != 0) {
-                               return true;
-                             }
-                           }
-                           return false;
+                           return notDeepEqualArrays(
+                             this.depends, this.lastArgs);
                          }
-                       }
+                       },
+        "events": { value: [], writable: true },
+        "commander": { value: undefined, writable: true }
       });
     }
     this.func = Func;
     
     Func.prototype.calc = function(force){
       if(this.cell == undefined || this.func == undefined) {
+        if(this.verbose) {
+          console.log('func.calc: ' + this.tag + " quit by undefined.");
+        }
+        return; // 計算しない
+      }
+      if(!force && !this.auto) {
+        if(this.verbose) {
+          console.log('func.calc: ' + this.tag + " quit by not auto.");
+        }
         return; // 計算しない
       }
       if(!force && !this.recalcRequired && !this.argsChanged) {
+        if(this.verbose) {
+          console.log('func.calc: ' + this.tag + " quit by not required.");
+        }
         return; // 計算しない
       }
+      
       var dep = this.depends;
       var n = dep.length;
       var arg = [];
@@ -62,8 +70,52 @@ define(function(){
       if(this.verbose) {
         console.log('func.calc: ' + this.tag + ": " + arg);
       }
-      this.func.apply(null, arg); // 計算実行
+      this.cell.value = this.func.apply(null, arg); // 計算実行
       this.recalcRequired = false;
+    }
+    
+    Func.prototype.requestRecalc = function(){
+      //addEventListener で bind(this) したので this は func
+      this.recalcRequired = true;
+      this.commander.requestRecalc(this);
+    }
+    
+    Func.prototype.addEventListeners = function(){
+      var elements = this.getElements();
+      var n = elements.length;
+      var events = [];
+      for(var i = 0; i < n; i++) {
+        var fn = this.requestRecalc.bind(this);
+        elements[i].addEventListener("change", fn, false);
+        // bubbling phase で、sync の後
+        // bind すると新規無名関数となるので remove 用に記憶しておく。
+        events.push([elements[i], fn]);
+      }
+      this.events = events;
+      
+    }
+    
+    Func.prototype.removeEventListeners = function(){
+      var events = this.events;
+      var n = events.length;
+      for(var i = 0; i < n; i++) {
+        var e = events[i];
+        e[0].removeEventListener("change", e[1], false);
+      }
+      this.events = [];
+    }
+    
+    Func.prototype.getElements = function(){
+      var elements = [];
+      var dep = this.depends;
+      var n = dep.length;
+      for(var i = 0; i < n; i++) {
+        var d = dep[i];
+        if(d && d.sync && d.sync.ready) {
+          elements.push(d.sync.element);
+        }
+      }
+      return(elements);
     }
     
     /*
@@ -118,18 +170,12 @@ define(function(){
         "solves": { value: [], writable: true },
         "serializedFuncs": { value: [], writable: true },
         "rebuildRequired": { value: false, writable: true },
+        "disableAuto": { value: false, writable: true },
         "unsolved": { get: function(){
                         return this.solves.length > 0;
                       }},
         "auto": { get: function(){
-                    var funcs = this.funcs;
-                    var n = funcs.length;
-                    if(n == 0) { return undefined; }
-                    var res = funcs[0].auto;
-                    for(var i = 1; i < n; i++) {
-                      if(res !== funcs[i].auto) { return undefined; }
-                    }
-                    return res;
+                    return allOrNot(this.funcs, "auto");
                   },
                   set: function(auto){
                     var funcs = this.funcs;
@@ -139,14 +185,7 @@ define(function(){
                   }
                 },
         "verbose": { get: function(){
-                       var funcs = this.funcs;
-                       var n = funcs.length;
-                       if(n == 0) { return undefined; }
-                       var res = funcs[0].verbose;
-                       for(var i = 1; i < n; i++) {
-                         if(res !== funcs[i].verbose) { return undefined; }
-                       }
-                       return res;
+                       return allOrNot(this.funcs, "verbose");
                      },
                      set: function(verbose){
                        var funcs = this.funcs;
@@ -188,8 +227,19 @@ define(function(){
     計算実行
     ############################*/
     
-    Calc.prototype.calcForce = function(){
-      this.calc(true);
+    Calc.prototype.requestRecalc = function(caller, force){
+      // caller は今のところ使わない
+      if(!force && this.disableAuto) { return; }
+      if(!force && this.auto == false) { return; }
+      if(!force && !this.recalcRequired) { return; }
+      
+      if(this.rebuildRequired) {
+        // 計算樹生成と翻訳
+        this.makeTree();
+        this.serializeTree();
+      }
+      // 計算実行
+      this.calc(force);
     }
     
     Calc.prototype.calc = function(force){
@@ -208,7 +258,7 @@ define(function(){
       this.serializedFuncs = [];
       while(true) {
         var leaf = this.getFirstLeaf();
-        if(leaf === nothing) {
+        if(leaf === null) {
           // 計算できる端点がなくなれば終了
           var err = this.unsolved;
           if(err) {
@@ -261,7 +311,7 @@ define(function(){
       }
     }
     
-    Calc.prototype.addNewChild(at, child){
+    Calc.prototype.addNewChild = function(at, child){
       var solv = this.getSolvById(at);
       var childSolv = new Solv(child);
       this.solves.push(childSolv);
@@ -270,7 +320,7 @@ define(function(){
       solv.addChild(child);
     }
     
-    Calc.prototype.addOldChild(at, child){
+    Calc.prototype.addOldChild = function(at, child){
       var solv = this.getSolvById(at);
       var childSolv = this.getSolvById(child);
       childSolv.addParent(at);
@@ -290,29 +340,28 @@ define(function(){
     計算式登録
     ############################*/
     
-    Calc.prototype.addFunc = function(cell, func, depends, auto, verbose, tag){
-      // func 生成
-      // funcs , ids 登録
-      // syncが有効なら、DOMイベントリスナー生成
-      //   再計算フラグを立てる。
-      //   自動計算モードなら、calc.calc実行する。
-      //   この２つをまとめて処理する汎用なのを、Calcが持っておいたら楽か？
-      // この時、remove用に無名関数の情報を登録しておく。
-      // removeFuncByVar して、重複を避ける。
-      // rebuildRequired フラグをたてる
+    Calc.prototype.addFunc = function(cell, fn, depends, auto, verbose, tag){
+      var func = new Func;
+      func.cell = cell;
+      func.fn = fn;
+      func.depends = depends;
+      if(auto != undefined) { func.auto = auto; }
+      if(verbose != undefined) { func.verbose = verbose; }
+      if(tag) { func.tag = tag; }
+      func.commander = this;
+      func.addEventListeners();
+      
+      this.removeFuncByVar(cell);
+      this.funcs.push(func);
+      this.rebuildRequired = true;
     }
     
     Calc.prototype.removeFuncAt = function(at){
-      // DOMイベントリスナー解除が必要。
-      // element.removeEventListener('change', listenerFunc, false)
-      // みたいなことをやらないといけないので、
-      // addEventListener のときに、生成した関数を覚えておくか、
-      // remove用の関数を登録しておくか、しないといけないようだ。
-      // func.removeEventListener() ってので削除するのがスマート？
       var funcs = this.funcs;
       if(at < 0 || at >= funcs.length) {
         throw new RangeError('array index out of range');
       }
+      funcs[at].removeEventListeners();
       funcs[at] == new Func;
       // 空の Func object で埋めれば、計算要求は無視される。
       // idがずれないので rebuildRequired しなくてよい。
@@ -330,12 +379,31 @@ define(function(){
     ############################*/
     
     Calc.prototype.getFirstUnlistedFunc = function(){
+      var funcs = this.funcs;
+      var n = funcs.length;
+      var ids = this.ids;
+      for(var i = 0; i < n; i++) {
+        if(ids.indexOf(i) == -1 && funcs[i].cell != undefined) { return(i); }
+      }
+      return(null);
     }
     
     Calc.prototype.getFirstLeaf = function(){
+      var solves = this.solves;
+      var n = solves.length;
+      for(var i = 0; i < n; i++) {
+        if(solves[i].isLeaf) { return(solves[i]); }
+      }
+      return(null);
     }
     
     Calc.prototype.getIdByVar = function(cell){
+      var funcs = this.funcs;
+      var n = funcs.length;
+      for(var i = 0; i < n; i++) {
+        if(funcs[i].cell === cell) { return(i); }
+      }
+      return(null);
     }
     
     Calc.prototype.getVarById = function(id){
@@ -347,12 +415,17 @@ define(function(){
     }
     
     Calc.prototype.getSolvById = function(id){
+      var at = this.ids.indexOf(id);
+      return(at == -1 ? null : this.solves[at]);
     }
     
     Calc.prototype.getFuncBySolv = function(solv){
+      var at = this.solves.indexOf(solv);
+      return(at == -1 ? null : this.funcs[this.ids[at]]);
     }
     
     Calc.prototype.isIdListed = function(id){
+      // 未使用
     }
     
     /*
@@ -397,7 +470,7 @@ define(function(){
         "self": { value: undefined, writable: true },
         "children": { value: [] },
         "parents": { value: [] },
-        "needCalc": { value: false, writable: true },
+        "needCalc": { value: true, writable: true },
         "isLeaf": { get: function(){
                       var kids = this.children;
                       for(var i = 0; i < kids.length; i ++) {
@@ -498,6 +571,44 @@ define(function(){
     すべての点に対応する solv が作られた。
     これらを束ねるための root solv があるといいかも。
     */
+    
+    /*############################
+    共用補助関数
+    ############################*/
+    
+    function notDeepEqualArrays(x, y) {
+      // 配列xと配列yの値の不一致を調べる。
+      var n = x.length;
+      if(n != y.length) { return true; }
+      for(var i = 0; i < n; i++) {
+        if(x[i].compareValue) {
+          // x の要素が Kuro_var系なら、compareValueを使う。
+          if(x[i].compareValue(y[i]) != 0) {
+            return true;
+          }
+        } else {
+          // 非Kuro_varでは日付比較などは正しくない。
+          if(x[i] !== y[i]) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+    this.notDeepEqualArrays = notDeepEqualArrays;
+    
+    function allOrNot(x, prop) {
+      // 配列xの各要素のプロパティpropを調べる。
+      // すべて同じなら該当値を、一つでも違えば undefined を返す。
+      var n = x.length;
+      if(n == 0) { return undefined; }
+      var res = x[0][prop];
+      for(var i = 1; i < n; i++) {
+        if(res !== x[i][prop]) { return undefined; }
+      }
+      return res;
+    }
+    this.allOrNot = allOrNot;
   };
   
   return(Kuro_calc);
