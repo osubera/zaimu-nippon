@@ -54,6 +54,7 @@ describe('Kuro_base.syncer', function(){
         expect(x).to.have.property('kuro', undefined);
         expect(x).to.have.property('element', undefined);
         expect(x).to.have.property('ready', false);
+        expect(x).to.have.property('listener', undefined);
       });
       it('should respond to methods', function(){
         expect(x).to.respondTo('onVar');

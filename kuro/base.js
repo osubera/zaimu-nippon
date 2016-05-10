@@ -27,7 +27,8 @@ define(function(){
         "ready": { get: function(){
                      return !(!this.kuro || !this.element);
                    },
-                   configurable: true }
+                   configurable: true },
+        "listener": { value: undefined, writable: true, configurable: true }
       });
       
       function onVar() {
@@ -44,11 +45,26 @@ define(function(){
       this.onBox = onBox;
       
       function setElement(element) {
-        if(!element) { return; }
-        element.kuro = this.kuro; // 今のところ使っていない
-        element.addEventListener("change", this.onBox.bind(this), true);
-        // caputuring phase で、再計算前に value 更新する
-        return(element);
+        if(!element) {
+          if(this.element) {
+            // 登録済みで undefined などをもらえば削除
+            if(this.listener) {
+              this.element.removeEventListener("change", this.listener, true);
+              this.listener = undefined;
+            }
+            element.kuro = undefined;
+            // delete element.kuro は重いらしく、完全には消えないがこれでいく。
+          }
+          return;
+        } else {
+          element.kuro = this.kuro; // 今のところ使っていない
+          var fn = this.onBox.bind(this);
+          element.addEventListener("change", fn, true);
+          // caputuring phase で、再計算前に value 更新する
+          this.listener = fn;
+          // removeEventListener 用に覚えておく
+          return(element);
+        }
       }
       this.setElement = setElement;
       
