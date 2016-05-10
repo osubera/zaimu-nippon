@@ -30,12 +30,39 @@ define(function(){
       }
       this.mockGetLastCall =mockGetLastCall;
       
-      function mockSetLastCall(arg) {
-        this.mockLastCall = arg
+      function mockSetLastCall(tag, arg) {
+        var p = [tag];
+        for(var i = 0; i < arg.length; i++) {
+          p.push(arg[i]);
+        }
+        this.mockLastCall = p.toString();
       }
       this.mockSetLastCall =mockSetLastCall;
     }
     this.base = Base;
+    
+    /*############################
+    Console / this.console
+    console
+    ############################*/
+    
+    function Console() {
+      Base.call(this);
+      Object.defineProperties(this, {
+        "mockName": { value: "console", writable: false },
+        "mockVerbose": { value: false, writable: false },
+        "mockOriginal": { value: undefined, writable: true }
+      });
+      
+      function log(){
+        this.mockSetLastCall("log", arguments);
+        if(this.mockOriginal) {
+          this.mockOriginal.apply(null, arguments);
+        }
+      }
+      this.log = log;
+    }
+    this.console = Console;
     
     /*############################
     Element / this.element
@@ -45,9 +72,15 @@ define(function(){
     function Element() {
       Base.call(this);
       
-      function addEvenetListener(type, listener, useCapture){
-        this.mockSetLastCall("addEventListener@" + arguments);
+      function addEventListener(type, listener, useCapture){
+        this.mockSetLastCall("addEventListener", arguments);
       }
+      this.addEventListener = addEventListener;
+      
+      function removeEventListener(type, listener, useCapture){
+        this.mockSetLastCall("removeEventListener", arguments);
+      }
+      this.removeEventListener = removeEventListener;
     }
     this.element = Element;
   };
