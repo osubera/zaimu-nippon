@@ -90,6 +90,16 @@ describe('Kuro_calc.func', function(){
         y.calc();
         expect(kon.mockGetLastCall()).to.equal('console: log,func.calc: TEST quit by not required.');
       })});
+      it.skip('should calc', function(){
+      });
+      it.skip('should requestRecalc', function(){
+      });
+      it.skip('should addEventListeners', function(){
+      });
+      it.skip('should removeEventListeners', function(){
+      });
+      it.skip('should getElements', function(){
+      });
     });
   });
 });
@@ -102,6 +112,44 @@ describe('Kuro_calc.calc', function(){
     var x = new Kuro_calc.calc;
     expect(x).to.be.an('object')
       .and.to.be.instanceOf(Kuro_calc.calc);
+      
+    describe('new Kuro_calc.calc', function(){
+      it('should have properties', function(){
+        expect(x).to.have.property('funcs');
+        expect(x).to.have.property('ids');
+        expect(x).to.have.property('solves');
+        expect(x).to.have.property('serializedFuncs');
+        expect(x).to.have.property('rebuildRequired', false);
+        expect(x).to.have.property('disableAuto', false);
+        expect(x).to.have.property('unsolved', false);
+        expect(x).to.have.property('auto', undefined);
+        expect(x).to.have.property('verbose', undefined);
+        expect(x).to.have.property('recalcRequired', false);
+      });
+      it('should respond to methods', function(){
+        expect(x).to.respondTo('requestRecalc');
+        expect(x).to.respondTo('calc');
+        expect(x).to.respondTo('serializeTree');
+        expect(x).to.respondTo('onCyclicError');
+        expect(x).to.respondTo('clearTree');
+        expect(x).to.respondTo('addTree');
+        expect(x).to.respondTo('sprout');
+        expect(x).to.respondTo('addNewChild');
+        expect(x).to.respondTo('addOldChild');
+        expect(x).to.respondTo('makeTree');
+        expect(x).to.respondTo('addFunc');
+        expect(x).to.respondTo('removeFuncAt');
+        expect(x).to.respondTo('removeFuncByVar');
+        expect(x).to.respondTo('getFirstUnlistedFunc');
+        expect(x).to.respondTo('getFirstLeaf');
+        expect(x).to.respondTo('getIdByVar');
+        expect(x).to.respondTo('getVarById');
+        expect(x).to.respondTo('getIdBySolv');
+        expect(x).to.respondTo('getSolvById');
+        expect(x).to.respondTo('getFuncBySolv');
+        expect(x).to.respondTo('isIdListed');
+      });
+    });
   });
 });
 
@@ -113,6 +161,23 @@ describe('Kuro_calc.solv', function(){
     var x = new Kuro_calc.solv;
     expect(x).to.be.an('object')
       .and.to.be.instanceOf(Kuro_calc.solv);
+    
+    describe('new Kuro_calc.solv', function(){
+      it('should have properties', function(){
+        expect(x).to.have.property('self', undefined);
+        expect(x).to.have.property('children');
+        expect(x).to.have.property('parents');
+        expect(x).to.have.property('needCalc', true);
+        expect(x).to.have.property('isLeaf', true);
+        expect(x).to.have.property('noChildren', true);
+        expect(x).to.have.property('hasBranch', false);
+        expect(x).to.have.property('hasMerge', false);
+      });
+      it('should respond to methods', function(){
+        expect(x).to.respondTo('addChild');
+        expect(x).to.respondTo('addParent');
+      });
+    });
   });
 });
 
