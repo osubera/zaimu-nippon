@@ -149,6 +149,68 @@ describe('Kuro_calc.calc', function(){
         expect(x).to.respondTo('getFuncBySolv');
         expect(x).to.respondTo('isIdListed');
       });
+      it.skip('should funcs', function(){
+      });
+      it.skip('should ids', function(){
+      });
+      it.skip('should solves', function(){
+      });
+      it.skip('should serializedFuncs', function(){
+      });
+      it.skip('should rebuildRequired', function(){
+      });
+      it.skip('should disableAuto', function(){
+      });
+      it.skip('should unsolved', function(){
+      });
+      it.skip('should auto', function(){
+      });
+      it.skip('should verbose', function(){
+      });
+      it.skip('should recalcRequired', function(){
+      });
+      it.skip('should requestRecalc', function(){
+      });
+      it.skip('should calc', function(){
+      });
+      it.skip('should serializeTree', function(){
+      });
+      it.skip('should onCyclicError', function(){
+      });
+      it.skip('should clearTree', function(){
+      });
+      it.skip('should addTree', function(){
+      });
+      it.skip('should sprout', function(){
+      });
+      it.skip('should addNewChild', function(){
+      });
+      it.skip('should addOldChild', function(){
+      });
+      it.skip('should makeTree', function(){
+      });
+      it.skip('should addFunc', function(){
+      });
+      it.skip('should removeFuncAt', function(){
+      });
+      it.skip('should removeFuncByVar', function(){
+      });
+      it.skip('should getFirstUnlistedFunc', function(){
+      });
+      it.skip('should getFirstLeaf', function(){
+      });
+      it.skip('should getIdByVar', function(){
+      });
+      it.skip('should getVarById', function(){
+      });
+      it.skip('should getIdBySolv', function(){
+      });
+      it.skip('should getSolvById', function(){
+      });
+      it.skip('should getFuncBySolv', function(){
+      });
+      it.skip('should isIdListed', function(){
+      });
     });
   });
 });
@@ -177,6 +239,26 @@ describe('Kuro_calc.solv', function(){
         expect(x).to.respondTo('addChild');
         expect(x).to.respondTo('addParent');
       });
+      it.skip('should self', function(){
+      });
+      it.skip('should children', function(){
+      });
+      it.skip('should parents', function(){
+      });
+      it.skip('should needCalc', function(){
+      });
+      it.skip('should isLeaf', function(){
+      });
+      it.skip('should noChildren', function(){
+      });
+      it.skip('should hasBranch', function(){
+      });
+      it.skip('should hasMerge', function(){
+      });
+      it.skip('should addChild', function(){
+      });
+      it.skip('should addParent', function(){
+      });
     });
   });
 });
@@ -185,10 +267,47 @@ describe('Kuro_calc.notDeepEqualArrays', function(){
   it('should be a function', function(){
     expect(Kuro_calc.notDeepEqualArrays).to.be.a('function');
   });
+  it('should compare values of two arrays', function(){
+    expect(Kuro_calc.notDeepEqualArrays([1,2,3], [1,2,3])).to.equal(false);
+    expect(Kuro_calc.notDeepEqualArrays([1,2,4], [1,2,3])).to.equal(true);
+    expect(Kuro_calc.notDeepEqualArrays([1,2,3,4], [1,2,3])).to.equal(true);
+    expect(Kuro_calc.notDeepEqualArrays(['a','b'], ['a','b'])).to.equal(false);
+  });
+  it('should compare kuro array vs basic array values', function(){
+    expect(Kuro_calc.notDeepEqualArrays(
+      [new Kuro_base.number(1), new Kuro_base.number(2)],
+      [1,2])).to.equal(false);
+    expect(Kuro_calc.notDeepEqualArrays(
+      [new Kuro_base.string('a'), new Kuro_base.string('b')],
+      ['a','b'])).to.equal(false);
+    expect(Kuro_calc.notDeepEqualArrays(
+      [new Kuro_base.date('2016/5/1'), new Kuro_base.date('2016/5/12')],
+      [new Date(2016,4,1), new Date(2016,4,12)])).to.equal(false);
+    expect(Kuro_calc.notDeepEqualArrays(
+      [new Kuro_base.boolean(false), new Kuro_base.boolean(true)],
+      [false,true])).to.equal(false);
+  });
+  it('cannot compare data values of two basic array', function(){
+    expect(Kuro_calc.notDeepEqualArrays(
+      [new Date(2016,4,1), new Date(2016,4,12)],
+      [new Date(2016,4,1), new Date(2016,4,12)])).not.to.equal(false);
+  });
 });
 
 describe('Kuro_calc.allOrNot', function(){
   it('should be a function', function(){
     expect(Kuro_calc.allOrNot).to.be.a('function');
+  });
+  it('should scan a property of objects in array', function(){
+    expect(Kuro_calc.allOrNot([], 'hoge')).to.equal(undefined);
+    expect(Kuro_calc.allOrNot(
+      [new Kuro_base.number, new Kuro_base.number],
+      'defaultValue')).to.equal(0);
+    expect(Kuro_calc.allOrNot(
+      [new Kuro_base.string, new Kuro_base.string],
+      'defaultValue')).to.equal("");
+    expect(Kuro_calc.allOrNot(
+      [new Kuro_base.number, new Kuro_base.string],
+      'defaultValue')).to.equal(undefined);
   });
 });
