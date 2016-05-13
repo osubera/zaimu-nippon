@@ -287,7 +287,7 @@ describe('Kuro_calc.notDeepEqualArrays', function(){
       [new Kuro_base.boolean(false), new Kuro_base.boolean(true)],
       [false,true])).to.equal(false);
   });
-  it('cannot compare data values of two basic array', function(){
+  it('cannot compare object values of two basic array', function(){
     expect(Kuro_calc.notDeepEqualArrays(
       [new Date(2016,4,1), new Date(2016,4,12)],
       [new Date(2016,4,1), new Date(2016,4,12)])).not.to.equal(false);
