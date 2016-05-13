@@ -239,25 +239,42 @@ describe('Kuro_calc.solv', function(){
         expect(x).to.respondTo('addChild');
         expect(x).to.respondTo('addParent');
       });
-      it.skip('should self', function(){
-      });
-      it.skip('should children', function(){
-      });
-      it.skip('should parents', function(){
+      it('should be initialized', function(){
+        var a = new Kuro_calc.solv;
+        expect(a.self).to.equal(undefined);
+        var a = new Kuro_calc.solv(3);
+        expect(a.self).to.equal(3);
       });
       it.skip('should needCalc', function(){
       });
-      it.skip('should isLeaf', function(){
+      it.skip('should detect leaf', function(){
+        var a = new Kuro_calc.solv(0);
+        a.addChild(1);
       });
-      it.skip('should noChildren', function(){
+      it('should add Child', function(){
+        var a = new Kuro_calc.solv(4);
+        expect(a.children.length).to.equal(0);
+        expect(a.hasBranch).to.equal(false);
+        expect(a.noChildren).to.equal(true);
+        a.addChild(5);
+        expect(a.children.length).to.equal(1);
+        expect(a.hasBranch).to.equal(false);
+        expect(a.noChildren).to.equal(false);
+        a.addChild(6);
+        expect(a.children.length).to.equal(2);
+        expect(a.hasBranch).to.equal(true);
+        expect(a.noChildren).to.equal(false);
       });
-      it.skip('should hasBranch', function(){
-      });
-      it.skip('should hasMerge', function(){
-      });
-      it.skip('should addChild', function(){
-      });
-      it.skip('should addParent', function(){
+      it('should add Parent', function(){
+        var a = new Kuro_calc.solv(0);
+        expect(a.parents.length).to.equal(0);
+        expect(a.hasMerge).to.equal(false);
+        a.addParent(1);
+        expect(a.parents.length).to.equal(1);
+        expect(a.hasMerge).to.equal(false);
+        a.addParent(2);
+        expect(a.parents.length).to.equal(2);
+        expect(a.hasMerge).to.equal(true);
       });
     });
   });

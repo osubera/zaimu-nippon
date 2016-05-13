@@ -475,6 +475,7 @@ define(function(){
                       var kids = this.children;
                       for(var i = 0; i < kids.length; i ++) {
                         if(kids[i].needCalc) {
+                          // kids[i] には id が格納されており、ここは動かない
                           return false;
                         }
                       }
