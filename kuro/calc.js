@@ -386,6 +386,9 @@ define(function(){
     // また、 solv が func を持てば、一部検索方法も変わるし、 ids の扱いの変化によっては、 id 系からの検索という概念がなくなるかもしれない。
     
     Calc.prototype.getFirstUnlistedFunc = function(){
+      // makeTree でのみ使用
+      // たぶん、idの要不要は、これがids無しでスマートに書けるかどうかがポイント
+      // id 不要説、有利
       var funcs = this.funcs;
       var n = funcs.length;
       var ids = this.ids;
@@ -396,6 +399,8 @@ define(function(){
     }
     
     Calc.prototype.getFirstLeaf = function(){
+      
+      // serializeTree でのみ使用
       var solves = this.solves;
       var n = solves.length;
       for(var i = 0; i < n; i++) {
@@ -405,6 +410,7 @@ define(function(){
     }
     
     Calc.prototype.getIdByVar = function(cell){
+      // sprout と removeFuncByVar で使用
       var funcs = this.funcs;
       var n = funcs.length;
       for(var i = 0; i < n; i++) {
@@ -422,11 +428,13 @@ define(function(){
     }
     
     Calc.prototype.getSolvById = function(id){
+      // sprout, addNewChild, addOldChild (2箇所), の計4箇所で使用
       var at = this.ids.indexOf(id);
       return(at == -1 ? null : this.solves[at]);
     }
     
     Calc.prototype.getFuncBySolv = function(solv){
+      // serializeTree でのみ使用
       // どうせ solv は翻訳で使えば終わりなのだから、これ（翻訳）を高速化するために、 solv に func への参照をつけておいて、直接飛べるようにしたらいいのではないか。
       var at = this.solves.indexOf(solv);
       return(at == -1 ? null : this.funcs[this.ids[at]]);
@@ -485,6 +493,8 @@ define(function(){
                         if(kids[i].needCalc) {
                           // kids[i] には id が格納されており、ここは動かない
                           // このclass自身は格納する相手を、このプロパティ以外では決めてないので、使う側のルールの問題。
+                          // ただし、self が何を意味するのかというのが曖昧に残っている。
+                          // self を func に差し替えればいいか。初期化時に func は決まっているはずだから、 func をもらって初期化すればスマート。
                           return false;
                         }
                       }
