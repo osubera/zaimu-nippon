@@ -163,10 +163,12 @@ define(function(){
     計算制御のコンストラクタ
     ############################*/
     
+    // ids 廃止。
+    
     function Calc() {
       Object.defineProperties(this, {
         "funcs": { value: [] },
-        "ids": { value: [], writable: true },
+        //"ids": { value: [], writable: true },
         "solves": { value: [], writable: true },
         // solve が func への参照を持つなら、ids が無くても構わないかもしれない。ただ、使用済みかどうかの判定がいるので、そのために ids を使う手は残されている。func 参照を直接比較してもいいが、ids 登録の有無で判定した方が早いかもしれない、っていう意味で。
         // あるいはもっと直接的に、参照すれば消していくタイプの一時配列を用意すれば、残りを直接見ることができる。でも消す方がコストは大きいか。
@@ -174,7 +176,7 @@ define(function(){
         "rebuildRequired": { value: false, writable: true },
         "disableAuto": { value: false, writable: true },
         "unsolved": { get: function(){
-                        return this.solves.length > 0;
+                        return allOrNot(this.solves, "needCalc") !== false;
                       }},
         "auto": { get: function(){
                     return allOrNot(this.funcs, "auto");
@@ -270,7 +272,7 @@ define(function(){
           return(!err);
         }
         // 計算序列に追加
-        this.serializedFuncs.push(getFuncBySolv(leaf));
+        this.serializedFuncs.push(leaf.func);
         // 処理済みにする
         leaf.needCalc = false;
       }
@@ -290,52 +292,66 @@ define(function(){
     
     Calc.prototype.clearTree = function(){
       this.solves = [];
-      this.ids = [];
+      //this.ids = [];
     }
     
     Calc.prototype.addTree = function(start){
       this.solves.push(new Solv(start));
-      this.ids.push(start);
-      this.root.children.push(start);
+      //this.ids.push(start);
+      //this.root.children.push(start);
       this.sprout(start);
     }
     
     Calc.prototype.sprout = function(at){
-      var solv = this.getSolvById(at);
-      var func = this.funcs[solv.self];
-      var dep = func.depends;
+      //var solv = this.getSolvById(at);
+      //var func = this.funcs[solv.self];
+      var dep = at.func.depends;
       for(var i = 0; i < dep.length; i++) {
-        var child = this.getIdByVar(dep[i]);
-        if(this.isIdListed(child)) {
-          this.addOldChild(at, child);
-        } else {
+        var func = this.getFuncByVar(dep[i]);
+        if(func === null) { return; }
+        var child = this.getSolvByFunc(func);
+        if(child === null) {
           this.addNewChild(at, child);
           this.sprout(child);
+        } else {
+          this.addOldChild(at, child);
         }
       }
     }
     
     Calc.prototype.addNewChild = function(at, child){
-      var solv = this.getSolvById(at);
-      var childSolv = new Solv(child);
-      this.solves.push(childSolv);
-      this.ids.push(child);
-      childSolv.addParent(at);
-      solv.addChild(child);
+//      var solv = this.getSolvById(at);
+//      var childSolv = new Solv(child);
+      this.solves.push(child);
+//      this.ids.push(child);
+//      child.addParent(at);
+//      at.addChild(child);
+      this.addOldChild(at, child);
     }
     
     Calc.prototype.addOldChild = function(at, child){
-      var solv = this.getSolvById(at);
-      var childSolv = this.getSolvById(child);
-      childSolv.addParent(at);
-      solv.addChild(child);
+//      var solv = this.getSolvById(at);
+//      var childSolv = this.getSolvById(child);
+      child.addParent(at);
+      at.addChild(child);
+    }
+    
+    Calc.prototype.cloneFuncList = function(){
+      var cloned = [];
+      var funcs = this.funcs;
+      var n = funcs.length;
+      for(var i = 0; i < n; i++) {
+        cloned.push(funcs[i]);
+        // func は clone しない。
+      }
+      return(cloned);
     }
     
     Calc.prototype.makeTree = function(){
       this.clearTree();
-      while(true) {
-        var start = this.getFirstUnlistedFunc();
-        if(start === null) { break; }
+      var unlisted = this.cloneFuncList();
+      while(unlisted.length > 0) {
+        var start = unlisted.pop();
         this.addTree(start);
       }
     }
@@ -360,22 +376,25 @@ define(function(){
       this.rebuildRequired = true;
     }
     
-    Calc.prototype.removeFuncAt = function(at){
+    Calc.prototype.removeFunc = function(func){
       var funcs = this.funcs;
-      if(at < 0 || at >= funcs.length) {
-        throw new RangeError('array index out of range');
+      var n = funcs.length;
+      for(var i = 0; i < n; i++) {
+        if(funcs[i] === func) {
+          funcs[i].removeEventListeners();
+          funcs[i] = new Func;
+          return;
+        }
       }
-      funcs[at].removeEventListeners();
-      funcs[at] == new Func;
       // 空の Func object で埋めれば、計算要求は無視される。
-      // idがずれないので rebuildRequired しなくてよい。
-      // きれいに詰めたいなら、 new Calc からのやり直しが早い。
+      // いちいち rebuildRequired しない。
+      // きれいに詰めたいなら、 new Calc からやり直す。
     }
     
     Calc.prototype.removeFuncByVar = function(cell){
-      var at = this.getIdByVar(cell);
-      if(at == null) { return; }
-      this.removeFuncAt(at);
+      var func = this.getFuncByVar(cell);
+      if(func == null) { return; }
+      this.removeFunc(func);
     }
     
     /*############################
@@ -385,21 +404,21 @@ define(function(){
     // solv の child 登録内容変更により、必要なものが変わる。
     // また、 solv が func を持てば、一部検索方法も変わるし、 ids の扱いの変化によっては、 id 系からの検索という概念がなくなるかもしれない。
     
-    Calc.prototype.getFirstUnlistedFunc = function(){
-      // makeTree でのみ使用
-      // たぶん、idの要不要は、これがids無しでスマートに書けるかどうかがポイント
-      // id 不要説、有利
-      var funcs = this.funcs;
-      var n = funcs.length;
-      var ids = this.ids;
-      for(var i = 0; i < n; i++) {
-        if(ids.indexOf(i) == -1 && funcs[i].cell != undefined) { return(i); }
-      }
-      return(null);
-    }
+//     Calc.prototype.getFirstUnlistedFunc = function(){
+//       // makeTree でのみ使用
+//       // たぶん、idの要不要は、これがids無しでスマートに書けるかどうかがポイント
+//       // id 不要説、有利
+//       var funcs = this.funcs;
+//       var n = funcs.length;
+//       var ids = this.ids;
+//       for(var i = 0; i < n; i++) {
+//         if(ids.indexOf(i) == -1 && funcs[i].cell != undefined) { return(i); }
+//       }
+//       return(null);
+//     }
     
     Calc.prototype.getFirstLeaf = function(){
-      
+      // ok
       // serializeTree でのみ使用
       var solves = this.solves;
       var n = solves.length;
@@ -409,40 +428,50 @@ define(function(){
       return(null);
     }
     
-    Calc.prototype.getIdByVar = function(cell){
+    Calc.prototype.getFuncByVar = function(cell){
       // sprout と removeFuncByVar で使用
       var funcs = this.funcs;
       var n = funcs.length;
       for(var i = 0; i < n; i++) {
-        if(funcs[i].cell === cell) { return(i); }
+        if(funcs[i].cell === cell) { return(funcs[i]); }
       }
       return(null);
     }
     
-    Calc.prototype.getVarById = function(id){
-      // 未使用
+    Calc.prototype.getSolvByFunc = function(func){
+      // sprout で使用
+      var solves = this.solves;
+      var n = solves.length;
+      for(var i = 0; i < n; i++) {
+        if(solves[i].func === func) { return(solves[i]); }
+      }
+      return(null);
     }
     
-    Calc.prototype.getIdBySolv = function(solv){
-      // 未使用
-    }
+//     Calc.prototype.getVarById = function(id){
+//       // 未使用
+//     }
     
-    Calc.prototype.getSolvById = function(id){
-      // sprout, addNewChild, addOldChild (2箇所), の計4箇所で使用
-      var at = this.ids.indexOf(id);
-      return(at == -1 ? null : this.solves[at]);
-    }
+//     Calc.prototype.getIdBySolv = function(solv){
+//       // 未使用
+//     }
+//     
+//     Calc.prototype.getSolvById = function(id){
+//       // sprout, addNewChild, addOldChild (2箇所), の計4箇所で使用
+//       var at = this.ids.indexOf(id);
+//       return(at == -1 ? null : this.solves[at]);
+//     }
     
-    Calc.prototype.getFuncBySolv = function(solv){
-      // serializeTree でのみ使用
-      // どうせ solv は翻訳で使えば終わりなのだから、これ（翻訳）を高速化するために、 solv に func への参照をつけておいて、直接飛べるようにしたらいいのではないか。
-      var at = this.solves.indexOf(solv);
-      return(at == -1 ? null : this.funcs[this.ids[at]]);
-    }
+//     Calc.prototype.getFuncBySolv = function(solv){
+//       // serializeTree でのみ使用
+//       // どうせ solv は翻訳で使えば終わりなのだから、これ（翻訳）を高速化するために、 solv に func への参照をつけておいて、直接飛べるようにしたらいいのではないか。
+//       var at = this.solves.indexOf(solv);
+//       return(at == -1 ? null : this.funcs[this.ids[at]]);
+//     }
     
-    Calc.prototype.isIdListed = function(id){
-      // 未使用
-    }
+//     Calc.prototype.isIdListed = function(id){
+//       // sprout で使用
+//     }
     
     /*
     calc
@@ -481,9 +510,12 @@ define(function(){
     child側が依存先で、先に計算する。
     ############################*/
     
-    function Solv(self) {
+    // self 廃止し func にする。
+    // children, parents には object を格納する。
+    
+    function Solv(func) {
       Object.defineProperties(this, {
-        "self": { value: undefined, writable: true },
+        "func": { value: undefined, writable: true },
         "children": { value: [] },
         "parents": { value: [] },
         "needCalc": { value: true, writable: true },
@@ -510,7 +542,7 @@ define(function(){
                         return this.parents.length > 1;
                       }}
       });
-      this.self = self;
+      this.func = func;
     }
     this.solv = Solv;
     
