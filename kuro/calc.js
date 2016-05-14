@@ -260,6 +260,8 @@ define(function(){
     
     Calc.prototype.serializeTree = function(){
       this.serializedFuncs = [];
+      if(this.solves.length == 0) { return; }
+      // unsolved は、[]に対し true を返すので、空配列でループに入ってはいけない。
       while(true) {
         var leaf = this.getFirstLeaf();
         if(leaf === null) {
@@ -530,7 +532,7 @@ define(function(){
                           return false;
                         }
                       }
-                      return true;
+                      return this.needCalc;
                     }},
         "noChildren": { get: function(){
                       return this.children.length == 0;

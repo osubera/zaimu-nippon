@@ -116,12 +116,11 @@ describe('Kuro_calc.calc', function(){
     describe('new Kuro_calc.calc', function(){
       it('should have properties', function(){
         expect(x).to.have.property('funcs');
-        expect(x).to.have.property('ids');
         expect(x).to.have.property('solves');
         expect(x).to.have.property('serializedFuncs');
         expect(x).to.have.property('rebuildRequired', false);
         expect(x).to.have.property('disableAuto', false);
-        expect(x).to.have.property('unsolved', false);
+        expect(x).to.have.property('unsolved', true);
         expect(x).to.have.property('auto', undefined);
         expect(x).to.have.property('verbose', undefined);
         expect(x).to.have.property('recalcRequired', false);
@@ -136,22 +135,16 @@ describe('Kuro_calc.calc', function(){
         expect(x).to.respondTo('sprout');
         expect(x).to.respondTo('addNewChild');
         expect(x).to.respondTo('addOldChild');
+        expect(x).to.respondTo('cloneFuncList');
         expect(x).to.respondTo('makeTree');
         expect(x).to.respondTo('addFunc');
-        expect(x).to.respondTo('removeFuncAt');
+        expect(x).to.respondTo('removeFunc');
         expect(x).to.respondTo('removeFuncByVar');
-        expect(x).to.respondTo('getFirstUnlistedFunc');
         expect(x).to.respondTo('getFirstLeaf');
-        expect(x).to.respondTo('getIdByVar');
-        expect(x).to.respondTo('getVarById');
-        expect(x).to.respondTo('getIdBySolv');
-        expect(x).to.respondTo('getSolvById');
-        expect(x).to.respondTo('getFuncBySolv');
-        expect(x).to.respondTo('isIdListed');
+        expect(x).to.respondTo('getFuncByVar');
+        expect(x).to.respondTo('getSolvByFunc');
       });
       it.skip('should funcs', function(){
-      });
-      it.skip('should ids', function(){
       });
       it.skip('should solves', function(){
       });
@@ -187,29 +180,21 @@ describe('Kuro_calc.calc', function(){
       });
       it.skip('should addOldChild', function(){
       });
+      it.skip('should cloneFuncList', function(){
+      });
       it.skip('should makeTree', function(){
       });
       it.skip('should addFunc', function(){
       });
-      it.skip('should removeFuncAt', function(){
+      it.skip('should removeFunc', function(){
       });
       it.skip('should removeFuncByVar', function(){
       });
-      it.skip('should getFirstUnlistedFunc', function(){
-      });
       it.skip('should getFirstLeaf', function(){
       });
-      it.skip('should getIdByVar', function(){
+      it.skip('should getFuncByVar', function(){
       });
-      it.skip('should getVarById', function(){
-      });
-      it.skip('should getIdBySolv', function(){
-      });
-      it.skip('should getSolvById', function(){
-      });
-      it.skip('should getFuncBySolv', function(){
-      });
-      it.skip('should isIdListed', function(){
+      it.skip('should getSolvByFunc', function(){
       });
     });
   });
@@ -226,7 +211,7 @@ describe('Kuro_calc.solv', function(){
     
     describe('new Kuro_calc.solv', function(){
       it('should have properties', function(){
-        expect(x).to.have.property('self', undefined);
+        expect(x).to.have.property('func', undefined);
         expect(x).to.have.property('children');
         expect(x).to.have.property('parents');
         expect(x).to.have.property('needCalc', true);
@@ -241,38 +226,60 @@ describe('Kuro_calc.solv', function(){
       });
       it('should be initialized', function(){
         var a = new Kuro_calc.solv;
-        expect(a.self).to.equal(undefined);
-        var a = new Kuro_calc.solv(3);
-        expect(a.self).to.equal(3);
+        expect(a.func).to.equal(undefined);
+        var b = new Kuro_calc.func;
+        var a = new Kuro_calc.solv(b);
+        expect(a.func).to.equal(b);
       });
-      it.skip('should needCalc', function(){
-      });
-      it.skip('should detect leaf', function(){
-        var a = new Kuro_calc.solv(0);
-        a.addChild(1);
+      it('should detect leaf', function(){
+        var b = new Kuro_calc.func;
+        var a = new Kuro_calc.solv(b);
+        expect(a.isLeaf).to.equal(true);
+        var c = new Kuro_calc.solv(new Kuro_calc.func);
+        a.addChild(c);
+        expect(a.isLeaf).to.equal(false);
+        expect(c.isLeaf).to.equal(true);
+        var d = new Kuro_calc.solv(new Kuro_calc.func);
+        a.addChild(d);
+        expect(a.isLeaf).to.equal(false);
+        expect(d.isLeaf).to.equal(true);
+        d.needCalc = false;
+        expect(a.isLeaf).to.equal(false);
+        expect(c.isLeaf).to.equal(true);
+        expect(d.isLeaf).to.equal(false);
+        c.needCalc = false;
+        expect(a.isLeaf).to.equal(true);
+        expect(c.isLeaf).to.equal(false);
+        expect(d.isLeaf).to.equal(false);
       });
       it('should add Child', function(){
-        var a = new Kuro_calc.solv(4);
+        var b = new Kuro_calc.func;
+        var a = new Kuro_calc.solv(b);
         expect(a.children.length).to.equal(0);
         expect(a.hasBranch).to.equal(false);
         expect(a.noChildren).to.equal(true);
-        a.addChild(5);
+        var c = new Kuro_calc.solv(new Kuro_calc.func);
+        a.addChild(c);
         expect(a.children.length).to.equal(1);
         expect(a.hasBranch).to.equal(false);
         expect(a.noChildren).to.equal(false);
-        a.addChild(6);
+        var d = new Kuro_calc.solv(new Kuro_calc.func);
+        a.addChild(d);
         expect(a.children.length).to.equal(2);
         expect(a.hasBranch).to.equal(true);
         expect(a.noChildren).to.equal(false);
       });
       it('should add Parent', function(){
-        var a = new Kuro_calc.solv(0);
+        var b = new Kuro_calc.func;
+        var a = new Kuro_calc.solv(b);
         expect(a.parents.length).to.equal(0);
         expect(a.hasMerge).to.equal(false);
-        a.addParent(1);
+        var c = new Kuro_calc.solv(new Kuro_calc.func);
+        a.addParent(c);
         expect(a.parents.length).to.equal(1);
         expect(a.hasMerge).to.equal(false);
-        a.addParent(2);
+        var d = new Kuro_calc.solv(new Kuro_calc.func);
+        a.addParent(d);
         expect(a.parents.length).to.equal(2);
         expect(a.hasMerge).to.equal(true);
       });
