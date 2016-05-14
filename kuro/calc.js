@@ -168,6 +168,8 @@ define(function(){
         "funcs": { value: [] },
         "ids": { value: [], writable: true },
         "solves": { value: [], writable: true },
+        // solve が func への参照を持つなら、ids が無くても構わないかもしれない。ただ、使用済みかどうかの判定がいるので、そのために ids を使う手は残されている。func 参照を直接比較してもいいが、ids 登録の有無で判定した方が早いかもしれない、っていう意味で。
+        // あるいはもっと直接的に、参照すれば消していくタイプの一時配列を用意すれば、残りを直接見ることができる。でも消す方がコストは大きいか。
         "serializedFuncs": { value: [], writable: true },
         "rebuildRequired": { value: false, writable: true },
         "disableAuto": { value: false, writable: true },
@@ -284,6 +286,8 @@ define(function(){
     計算樹生成
     ############################*/
     
+    // この一連のものが、idを追加する方針になっているので、これを solv を追加するように変更する。
+    
     Calc.prototype.clearTree = function(){
       this.solves = [];
       this.ids = [];
@@ -378,6 +382,9 @@ define(function(){
     正引き、逆引き、検索
     ############################*/
     
+    // solv の child 登録内容変更により、必要なものが変わる。
+    // また、 solv が func を持てば、一部検索方法も変わるし、 ids の扱いの変化によっては、 id 系からの検索という概念がなくなるかもしれない。
+    
     Calc.prototype.getFirstUnlistedFunc = function(){
       var funcs = this.funcs;
       var n = funcs.length;
@@ -420,6 +427,7 @@ define(function(){
     }
     
     Calc.prototype.getFuncBySolv = function(solv){
+      // どうせ solv は翻訳で使えば終わりなのだから、これ（翻訳）を高速化するために、 solv に func への参照をつけておいて、直接飛べるようにしたらいいのではないか。
       var at = this.solves.indexOf(solv);
       return(at == -1 ? null : this.funcs[this.ids[at]]);
     }
@@ -476,6 +484,7 @@ define(function(){
                       for(var i = 0; i < kids.length; i ++) {
                         if(kids[i].needCalc) {
                           // kids[i] には id が格納されており、ここは動かない
+                          // このclass自身は格納する相手を、このプロパティ以外では決めてないので、使う側のルールの問題。
                           return false;
                         }
                       }
