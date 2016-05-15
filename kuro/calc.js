@@ -522,6 +522,8 @@ define(function(){
         "parents": { value: [] },
         "needCalc": { value: true, writable: true },
         "isLeaf": { get: function(){
+                      if(!this.needCalc) { return false; }
+                      // 処理済みは対象外。
                       var kids = this.children;
                       for(var i = 0; i < kids.length; i ++) {
                         if(kids[i].needCalc) {
@@ -532,7 +534,7 @@ define(function(){
                           return false;
                         }
                       }
-                      return this.needCalc;
+                      return true;
                     }},
         "noChildren": { get: function(){
                       return this.children.length == 0;
