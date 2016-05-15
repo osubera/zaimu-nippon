@@ -366,7 +366,7 @@ define(function(){
       var func = new Func;
       func.cell = cell;
       func.fn = fn;
-      func.depends = depends;
+      if(Array.isArray(depends)) { func.depends = depends; }
       if(auto != undefined) { func.auto = auto; }
       if(verbose != undefined) { func.verbose = verbose; }
       if(tag) { func.tag = tag; }

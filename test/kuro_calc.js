@@ -144,57 +144,102 @@ describe('Kuro_calc.calc', function(){
         expect(x).to.respondTo('getFuncByVar');
         expect(x).to.respondTo('getSolvByFunc');
       });
-      it.skip('should funcs', function(){
-      });
-      it.skip('should solves', function(){
-      });
-      it.skip('should serializedFuncs', function(){
-      });
-      it.skip('should rebuildRequired', function(){
-      });
-      it.skip('should disableAuto', function(){
-      });
-      it.skip('should unsolved', function(){
-      });
-      it.skip('should auto', function(){
-      });
-      it.skip('should verbose', function(){
-      });
-      it.skip('should recalcRequired', function(){
-      });
-      it.skip('should requestRecalc', function(){
-      });
-      it.skip('should calc', function(){
-      });
-      it.skip('should serializeTree', function(){
-      });
-      it.skip('should onCyclicError', function(){
-      });
-      it.skip('should clearTree', function(){
-      });
-      it.skip('should addTree', function(){
-      });
-      it.skip('should sprout', function(){
-      });
-      it.skip('should addNewChild', function(){
-      });
-      it.skip('should addOldChild', function(){
-      });
-      it.skip('should cloneFuncList', function(){
-      });
-      it.skip('should makeTree', function(){
-      });
-      it.skip('should addFunc', function(){
-      });
-      it.skip('should removeFunc', function(){
-      });
-      it.skip('should removeFuncByVar', function(){
-      });
-      it.skip('should getFirstLeaf', function(){
-      });
-      it.skip('should getFuncByVar', function(){
-      });
-      it.skip('should getSolvByFunc', function(){
+      it('should add func', function(){
+        var y = new Kuro_calc.calc;
+        y.addFunc();
+        y.addFunc(new Kuro_base.number, function(a,b){ return a+b; },
+          [new Kuro_base.number, new Kuro_base.number]);
+        y.addFunc(new Kuro_base.number, function(a,b){ return a-b; },
+          [new Kuro_base.number, new Kuro_base.number],
+          true, true, 'subtract');
+        y.addFunc(new Kuro_base.number, function(a,b){ return a*b; },
+          [y.funcs[1].cell, y.funcs[2].cell],
+          false, false, 'multiply');
+        expect(y.funcs.length).to.equal(4);
+        expect(y.solves.length).to.equal(0);
+        expect(y.serializedFuncs.length).to.equal(0);
+        expect(y.rebuildRequired).to.equal(true);
+        expect(y.disableAuto).to.equal(false);
+        expect(y.unsolved).to.equal(true);
+        expect(y.auto).to.equal(undefined);
+        expect(y.verbose).to.equal(undefined);
+        expect(y.recalcRequired).to.equal(true);
+        
+        describe('(new Kuro_calc.calc).addFunc', function(){
+          it('should manipulate auto', function(){
+            y.auto = false;
+            expect(y.auto).to.equal(false);
+            y.auto = true;
+            expect(y.auto).to.equal(true);
+          });
+          it('should manipulate verbose', function(){
+            y.verbose = true;
+            expect(y.verbose).to.equal(true);
+            y.verbose = false;
+            expect(y.verbose).to.equal(false);
+          });
+          it('should remove func', function(){
+            var a = new Kuro_base.number;
+            y.addFunc(a, function(a,b){ return a/b; },
+              [new Kuro_base.number, new Kuro_base.number],
+              false, true, 'check remove');
+            expect(y.funcs.length).to.equal(5);
+            expect(y.funcs[4].cell).to.equal(a);
+            expect(y.funcs[4].tag).to.equal('check remove');
+            expect(y.getFuncByVar(a)).to.equal(y.funcs[4]);
+            y.removeFuncByVar(a);
+            expect(y.funcs.length).to.equal(5);
+            expect(y.funcs[4].cell).to.equal(undefined);
+            expect(y.funcs[4].tag).to.equal('');
+          });
+        });
+        
+        describe('(new Kuro_calc.calc).makeTree', function(){
+          it.skip('should clearTree', function(){
+          });
+          it.skip('should addTree', function(){
+          });
+          it.skip('should sprout', function(){
+          });
+          it.skip('should addNewChild', function(){
+          });
+          it.skip('should addOldChild', function(){
+          });
+          it.skip('should cloneFuncList', function(){
+          });
+          it.skip('should makeTree', function(){
+          });
+          it.skip('should solves', function(){
+          });
+        });
+        
+        describe('(new Kuro_calc.calc).serializeTree', function(){
+          it.skip('should getFirstLeaf', function(){
+          });
+          it.skip('should getSolvByFunc', function(){
+          });
+          it.skip('should serializedFuncs', function(){
+          });
+          it.skip('should unsolved', function(){
+          });
+          it.skip('should recalcRequired', function(){
+          });
+          it.skip('should serializeTree', function(){
+          });
+          it.skip('should onCyclicError', function(){
+          });
+        });
+        
+        describe('(new Kuro_calc.calc).calc', function(){
+          it.skip('should requestRecalc', function(){
+          });
+          it.skip('should calc', function(){
+          });
+          it.skip('should disableAuto', function(){
+          });
+          it.skip('should rebuildRequired', function(){
+          });
+        });
       });
     });
   });
