@@ -195,17 +195,28 @@ describe('Kuro_calc.calc', function(){
         });
         
         describe('(new Kuro_calc.calc).makeTree', function(){
-          it.skip('should clearTree', function(){
+          it('should clone func list', function(){
+            var a = y.cloneFuncList();
+            expect(a.length).to.equal(5);
+            expect(y.funcs).not.to.equal(a);
+            expect(y.funcs).to.deep.equal(a);
           });
-          it.skip('should addTree', function(){
+          it('should add Tree', function(){
+            y.addTree(y.funcs[0]);
+            expect(y.solves.length).to.equal(1);
+            expect(y.solves[0].func).to.equal(y.funcs[0]);
           });
-          it.skip('should sprout', function(){
+          it('should clear Tree', function(){
+            y.clearTree();
+            expect(y.solves.length).to.equal(0);
+          });
+          it('should sprout', function(){
+            y.addTree(y.funcs[3]);
+            expect(y.solves.length).to.equal(3);
           });
           it.skip('should addNewChild', function(){
           });
           it.skip('should addOldChild', function(){
-          });
-          it.skip('should cloneFuncList', function(){
           });
           it.skip('should makeTree', function(){
           });

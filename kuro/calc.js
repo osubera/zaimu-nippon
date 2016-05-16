@@ -307,6 +307,8 @@ define(function(){
     Calc.prototype.sprout = function(at){
       //var solv = this.getSolvById(at);
       //var func = this.funcs[solv.self];
+      if(!at.func) { return; }
+      
       var dep = at.func.depends;
       for(var i = 0; i < dep.length; i++) {
         var func = this.getFuncByVar(dep[i]);
