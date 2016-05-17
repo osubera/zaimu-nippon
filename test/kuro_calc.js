@@ -211,8 +211,16 @@ describe('Kuro_calc.calc', function(){
             expect(y.solves.length).to.equal(0);
           });
           it('should sprout', function(){
+            expect(y.funcs[3].depends.length).to.equal(2);
+            expect(y.getFuncByVar(y.funcs[3].depends[0])).to.equal(y.funcs[1]);
+            expect(y.getFuncByVar(y.funcs[3].depends[1])).to.equal(y.funcs[2]);
+            expect(y.getSolvByFunc(y.funcs[1])).to.equal(null);
+            expect(y.getSolvByFunc(y.funcs[2])).to.equal(null);
             y.addTree(y.funcs[3]);
             expect(y.solves.length).to.equal(3);
+            expect(y.solves[0].func.tag).to.equal('multiply');
+            expect(y.solves[1].func.tag).to.equal('');
+            expect(y.solves[2].func.tag).to.equal('subtract');
           });
           it.skip('should addNewChild', function(){
           });

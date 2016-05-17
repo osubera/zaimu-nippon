@@ -298,10 +298,11 @@ define(function(){
     }
     
     Calc.prototype.addTree = function(start){
-      this.solves.push(new Solv(start));
+      var solv = new Solv(start);
+      this.solves.push(solv);
       //this.ids.push(start);
       //this.root.children.push(start);
-      this.sprout(start);
+      this.sprout(solv);
     }
     
     Calc.prototype.sprout = function(at){
@@ -315,8 +316,9 @@ define(function(){
         if(func === null) { return; }
         var child = this.getSolvByFunc(func);
         if(child === null) {
-          this.addNewChild(at, child);
-          this.sprout(child);
+          var newChild = new Solv(func);
+          this.addNewChild(at, newChild);
+          this.sprout(newChild);
         } else {
           this.addOldChild(at, child);
         }
