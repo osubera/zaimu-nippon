@@ -17,6 +17,7 @@ define(function(){
     
     function Base() {
       Object.defineProperties(this, {
+        "mockCalls": { value: [], writable: false, configurable: true },
         "mockLastCall": { value: "", writable: true, configurable: true },
         "mockName": { value: "", writable: true, configurable: true },
         "mockVerbose": { value: false, writable: true, configurable: true }
@@ -35,9 +36,16 @@ define(function(){
         for(var i = 0; i < arg.length; i++) {
           p.push(arg[i]);
         }
-        this.mockLastCall = p.toString();
+        this.mockCalls.push(this.mockLastCall = p.join());
       }
       this.mockSetLastCall =mockSetLastCall;
+      
+      function mockGetCalls() {
+        var ret = this.mockName + ": " + this.mockCalls.join(';');
+        while(this.mockCalls.pop()) {}
+        return(ret);
+      }
+      this.mockGetCalls = mockGetCalls;
     }
     this.base = Base;
     

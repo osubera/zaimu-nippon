@@ -170,10 +170,12 @@ define(function(){
         "funcs": { value: [] },
         //"ids": { value: [], writable: true },
         "solves": { value: [], writable: true },
+        "unlisted": { value: [], writable: true },
         // solve が func への参照を持つなら、ids が無くても構わないかもしれない。ただ、使用済みかどうかの判定がいるので、そのために ids を使う手は残されている。func 参照を直接比較してもいいが、ids 登録の有無で判定した方が早いかもしれない、っていう意味で。
         // あるいはもっと直接的に、参照すれば消していくタイプの一時配列を用意すれば、残りを直接見ることができる。でも消す方がコストは大きいか。
         "serializedFuncs": { value: [], writable: true },
         "rebuildRequired": { value: false, writable: true },
+        "hasCyclic": { value: false, writable: true },
         "disableAuto": { value: false, writable: true },
         "unsolved": { get: function(){
                         return allOrNot(this.solves, "needCalc") !== false;
@@ -241,6 +243,7 @@ define(function(){
         // 計算樹生成と翻訳
         this.makeTree();
         this.serializeTree();
+        this.rebuildRequired = false;
       }
       // 計算実行
       this.calc(force);
@@ -260,6 +263,7 @@ define(function(){
     
     Calc.prototype.serializeTree = function(){
       this.serializedFuncs = [];
+      this.hasCyclic = false;
       if(this.solves.length == 0) { return; }
       // unsolved は、[]に対し true を返すので、空配列でループに入ってはいけない。
       while(true) {
@@ -269,6 +273,7 @@ define(function(){
           var err = this.unsolved;
           if(err) {
             // 端点が無いのに未処理があれば、循環
+            this.hasCyclic = true;
             this.onCyclicError();
           }
           return(!err);
@@ -316,6 +321,7 @@ define(function(){
         if(func === null) { return; }
         var child = this.getSolvByFunc(func);
         if(child === null) {
+          this.unlisted[this.unlisted.indexOf(func)] = undefined;
           var newChild = new Solv(func);
           this.addNewChild(at, newChild);
           this.sprout(newChild);
@@ -355,10 +361,12 @@ define(function(){
     
     Calc.prototype.makeTree = function(){
       this.clearTree();
-      var unlisted = this.cloneFuncList();
-      while(unlisted.length > 0) {
-        var start = unlisted.pop();
-        this.addTree(start);
+      this.unlisted = this.cloneFuncList();
+      while(this.unlisted.length > 0) {
+        var start = this.unlisted.pop();
+        if(start) {
+          this.addTree(start);
+        }
       }
     }
     
@@ -369,7 +377,7 @@ define(function(){
     Calc.prototype.addFunc = function(cell, fn, depends, auto, verbose, tag){
       var func = new Func;
       func.cell = cell;
-      func.fn = fn;
+      func.func = fn;
       if(Array.isArray(depends)) { func.depends = depends; }
       if(auto != undefined) { func.auto = auto; }
       if(verbose != undefined) { func.verbose = verbose; }

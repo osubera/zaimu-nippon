@@ -30,6 +30,7 @@ describe('Mock_base.base', function(){
     
     describe('new Mock_base.base', function(){
       it('should have properties', function(){
+        expect(x).to.have.property('mockCalls');
         expect(x).to.have.property('mockLastCall', "");
         expect(x).to.have.property('mockName', "");
         expect(x).to.have.property('mockVerbose', false);
@@ -37,16 +38,30 @@ describe('Mock_base.base', function(){
       it('should respond to methods', function(){
         expect(x).to.respondTo('mockGetLastCall');
         expect(x).to.respondTo('mockSetLastCall');
+        expect(x).to.respondTo('mockGetCalls');
       });
       it('should store last call with arguments', function(){
         x.mockName = 'mock#1';
         x.mockSetLastCall('myfunc', [1,2,3]);
         expect(x.mockLastCall).to.equal('myfunc,1,2,3');
+        expect(x.mockCalls).to.deep.equal(['myfunc,1,2,3']);
       });
       it('should clear last call after mockGetLastCall', function(){
         expect(x.mockGetLastCall()).to.equal('mock#1: myfunc,1,2,3');
         expect(x.mockGetLastCall()).to.equal('mock#1: ');
         expect(x.mockLastCall).to.equal('');
+        expect(x.mockCalls).to.deep.equal(['myfunc,1,2,3']);
+      });
+      it('should store multiple calls', function(){
+        x.mockSetLastCall('myA', [11,12]);
+        x.mockSetLastCall('myB', [21,22]);
+        x.mockSetLastCall('myC', [31,32]);
+        expect(x.mockGetLastCall()).to.equal('mock#1: myC,31,32');
+        expect(x.mockCalls).to.deep.equal(['myfunc,1,2,3','myA,11,12','myB,21,22','myC,31,32']);
+      });
+      it('should clear multiple calls after mockGetCalls', function(){
+        expect(x.mockGetCalls()).to.equal('mock#1: myfunc,1,2,3;myA,11,12;myB,21,22;myC,31,32');
+        expect(x.mockCalls).to.deep.equal([]);
       });
     });
   });
