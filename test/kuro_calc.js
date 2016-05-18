@@ -92,15 +92,64 @@ describe('Kuro_calc.func', function(){
           expect(kon.mockGetLastCall()).to.equal('console: log,func.calc: TEST quit by not required.');
         })
       });
-      it.skip('should calc', function(){
+      it('should calc', function(){
+        mockConsole(function(kon){
+          var y = new Kuro_calc.func;
+          y.verbose = true;
+          y.tag = 'TEST';
+          y.cell = new Kuro_base.number(1);
+          y.func = function(a,b){ return a+2*b; };
+          y.depends = [3,4];
+          expect(y.argsChanged).to.equal(true);
+          y.calc();
+          expect(kon.mockGetLastCall()).to.equal('console: log,func.calc: TEST: 3,4');
+          expect(y.cell.value).to.equal(11);
+          expect(y.lastArgs).to.deep.equal([3,4]);
+          expect(y.argsChanged).to.equal(false);
+          expect(y.recalcRequired).to.equal(false);
+          y.calc();
+          expect(kon.mockGetLastCall()).to.equal('console: log,func.calc: TEST quit by not required.');
+          y.calc(true);
+          expect(kon.mockGetLastCall()).to.equal('console: log,func.calc: TEST: 3,4');
+          expect(y.recalcRequired).to.equal(false);
+        })
       });
-      it.skip('should requestRecalc', function(){
+      it('should request recalc to commander', function(){
+        var y = new Kuro_calc.func;
+        var cal = new Mock_base.base;
+        cal.requestRecalc = function(obj){
+          this.mockSetLastCall("requestRecalc", arguments);
+        }
+        y.commander = cal;
+        expect(y.recalcRequired).to.equal(false);
+        y.requestRecalc();
+        expect(y.recalcRequired).to.equal(true);
+        expect(cal.mockGetLastCall()).to.equal(': requestRecalc,[object Object]');
       });
-      it.skip('should addEventListeners', function(){
-      });
-      it.skip('should removeEventListeners', function(){
-      });
-      it.skip('should getElements', function(){
+      it('should manage event handlers on elements', function(){
+        var y = new Kuro_calc.func;
+        var a = new Kuro_base.number;
+        var b = new Kuro_base.number;
+        var ea = new Mock_base.element;
+        var eb = new Mock_base.element;
+        ea.mockName = 'a';
+        eb.mockName = 'b';
+        a.sync = ea;
+        b.sync = eb;
+        y.depends = [a,b];
+        
+        expect(y.getElements()).to.deep.equal([a.sync.element, b.sync.element]);
+        
+        y.addEventListeners();
+        expect(ea.mockGetLastCall()).to.equal('a: addEventListener,change,function () { [native code] },false');
+        expect(eb.mockGetLastCall()).to.equal('b: addEventListener,change,function () { [native code] },false');
+        expect(y.events.length).to.equal(2);
+        expect(y.events[0].length).to.equal(2);
+        
+        y.removeEventListeners();
+        expect(ea.mockGetLastCall()).to.equal('a: removeEventListener,change,function () { [native code] },false');
+        expect(eb.mockGetLastCall()).to.equal('b: removeEventListener,change,function () { [native code] },false');
+        expect(y.events.length).to.equal(0);
       });
     });
   });
