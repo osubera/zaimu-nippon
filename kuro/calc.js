@@ -18,6 +18,7 @@ define(function(){
     function Func() {
       Object.defineProperties(this, {
         "cell": { value: undefined, writable: true },
+        // 計算済みboxへの数値上書きに対応するなら、別途計算値とフラグが必要。
         "func": { value: undefined, writable: true },
         "depends": { value: [], writable: true },
         "lastArgs": { value: [], writable: true },
@@ -118,62 +119,17 @@ define(function(){
       return(elements);
     }
     
-    /*
-    calc
-    実際に呼び出されるコールバック
-    引数をセットしてfuncを呼ぶ
-    手動計算用に、強制フラグを持つ。
-    lastArgs と recalcRequired をリセットする。
-    日付タイプのときは clone しないといけない。
-    
-    func
-    func.apply(null, [4,5,6,7]);
-    の形で、配列を展開して呼び出す。
-    
-    depends
-    引数順で、依存objectの配列を持つ
-    基本型の定数を混ぜることができる
-    
-    cell
-    計算結果を格納するobjectを持つ
-    
-    lastArgs
-    現在の計算値の元になった引数値配列を持つ
-    
-    auto
-    自動再計算フラグ
-    offにするとイベントがcalcを呼んでもnop動作
-    手動計算向けに、forth引数との or 動作となる。
-    
-    recalcRequired
-    再計算フラグ
-    外部または内部からセット
-    
-    argsChanged
-    lastArgsとvarのvalueの配列の比較をして、変化の有無を調べる。
-    変化があれば、recalcRequiredフラグを立てる。
-    recalcRequired || argsChanged 判定をすることで、何度も計算しないように。
-    
-    verbose
-    console.log に情報を出すスイッチ
-    */
-    
     /*############################
     Calc / this.calc
     計算制御のコンストラクタ
     ############################*/
     
-    // ids 廃止。
-    
     function Calc() {
       Object.defineProperties(this, {
-        "funcs": { value: [] },
-        //"ids": { value: [], writable: true },
-        "solves": { value: [], writable: true },
-        "unlisted": { value: [], writable: true },
-        // solve が func への参照を持つなら、ids が無くても構わないかもしれない。ただ、使用済みかどうかの判定がいるので、そのために ids を使う手は残されている。func 参照を直接比較してもいいが、ids 登録の有無で判定した方が早いかもしれない、っていう意味で。
-        // あるいはもっと直接的に、参照すれば消していくタイプの一時配列を用意すれば、残りを直接見ることができる。でも消す方がコストは大きいか。
-        "serializedFuncs": { value: [], writable: true },
+        "funcs": { value: [] },  // 関数登録
+        "solves": { value: [], writable: true },  // 計算樹
+        "unlisted": { value: [], writable: true },  // 作業用
+        "serializedFuncs": { value: [], writable: true },  // 翻訳済み
         "rebuildRequired": { value: false, writable: true },
         "hasCyclic": { value: false, writable: true },
         "disableAuto": { value: false, writable: true },
@@ -193,6 +149,7 @@ define(function(){
         "verbose": { get: function(){
                        return allOrNot(this.funcs, "verbose");
                      },
+                     // 配下funcのverbose管理であり、このクラスには影響しない
                      set: function(verbose){
                        var funcs = this.funcs;
                        for(var i = 0; i < funcs.length; i++) {
@@ -216,19 +173,6 @@ define(function(){
     }
     this.calc = Calc;
     
-    /*
-    ほとんどのケースで、計算式は設計時に決まっていて、
-    実行時には変更されない。
-    よって、初期に1度だけtreeを作れば、
-    あとはそれを使いまわせるはず。
-    そのポリシーを制御するフラグも作る。
-    計算時にtreeの要素を消さないで消しこみをする手段を考える。
-    
-    tree固定なら、funcの計算順序も固定できるので、
-    最終的には func の配列を保持すればいい。
-    それを順に計算していくだけでいい。
-    */
-    
     /*############################
     計算実行
     ############################*/
@@ -241,6 +185,8 @@ define(function(){
       
       if(this.rebuildRequired) {
         // 計算樹生成と翻訳
+        // 基本的に計算式は設計時に固定されるので、
+        // 計算樹は固定で、一度生成すれば、実質的に固定。
         this.makeTree();
         this.serializeTree();
         this.rebuildRequired = false;
@@ -295,24 +241,17 @@ define(function(){
     計算樹生成
     ############################*/
     
-    // この一連のものが、idを追加する方針になっているので、これを solv を追加するように変更する。
-    
     Calc.prototype.clearTree = function(){
       this.solves = [];
-      //this.ids = [];
     }
     
     Calc.prototype.addTree = function(start){
       var solv = new Solv(start);
       this.solves.push(solv);
-      //this.ids.push(start);
-      //this.root.children.push(start);
       this.sprout(solv);
     }
     
     Calc.prototype.sprout = function(at){
-      //var solv = this.getSolvById(at);
-      //var func = this.funcs[solv.self];
       if(!at.func) { return; }
       
       var dep = at.func.depends;
@@ -332,18 +271,11 @@ define(function(){
     }
     
     Calc.prototype.addNewChild = function(at, child){
-//      var solv = this.getSolvById(at);
-//      var childSolv = new Solv(child);
       this.solves.push(child);
-//      this.ids.push(child);
-//      child.addParent(at);
-//      at.addChild(child);
       this.addOldChild(at, child);
     }
     
     Calc.prototype.addOldChild = function(at, child){
-//      var solv = this.getSolvById(at);
-//      var childSolv = this.getSolvById(child);
       child.addParent(at);
       at.addChild(child);
     }
@@ -385,6 +317,7 @@ define(function(){
       func.commander = this;
       func.addEventListeners();
       
+      // 同一変数なら上書きする
       this.removeFuncByVar(cell);
       this.funcs.push(func);
       this.rebuildRequired = true;
@@ -415,25 +348,9 @@ define(function(){
     正引き、逆引き、検索
     ############################*/
     
-    // solv の child 登録内容変更により、必要なものが変わる。
-    // また、 solv が func を持てば、一部検索方法も変わるし、 ids の扱いの変化によっては、 id 系からの検索という概念がなくなるかもしれない。
-    
-//     Calc.prototype.getFirstUnlistedFunc = function(){
-//       // makeTree でのみ使用
-//       // たぶん、idの要不要は、これがids無しでスマートに書けるかどうかがポイント
-//       // id 不要説、有利
-//       var funcs = this.funcs;
-//       var n = funcs.length;
-//       var ids = this.ids;
-//       for(var i = 0; i < n; i++) {
-//         if(ids.indexOf(i) == -1 && funcs[i].cell != undefined) { return(i); }
-//       }
-//       return(null);
-//     }
-    
     Calc.prototype.getFirstLeaf = function(){
-      // ok
-      // serializeTree でのみ使用
+      // 端点を探す。
+      // 端点とは、依存するchildがすべて計算済みで、ただちに計算実行できるsolv
       var solves = this.solves;
       var n = solves.length;
       for(var i = 0; i < n; i++) {
@@ -443,7 +360,6 @@ define(function(){
     }
     
     Calc.prototype.getFuncByVar = function(cell){
-      // sprout と removeFuncByVar で使用
       var funcs = this.funcs;
       var n = funcs.length;
       for(var i = 0; i < n; i++) {
@@ -453,7 +369,6 @@ define(function(){
     }
     
     Calc.prototype.getSolvByFunc = function(func){
-      // sprout で使用
       var solves = this.solves;
       var n = solves.length;
       for(var i = 0; i < n; i++) {
@@ -462,70 +377,11 @@ define(function(){
       return(null);
     }
     
-//     Calc.prototype.getVarById = function(id){
-//       // 未使用
-//     }
-    
-//     Calc.prototype.getIdBySolv = function(solv){
-//       // 未使用
-//     }
-//     
-//     Calc.prototype.getSolvById = function(id){
-//       // sprout, addNewChild, addOldChild (2箇所), の計4箇所で使用
-//       var at = this.ids.indexOf(id);
-//       return(at == -1 ? null : this.solves[at]);
-//     }
-    
-//     Calc.prototype.getFuncBySolv = function(solv){
-//       // serializeTree でのみ使用
-//       // どうせ solv は翻訳で使えば終わりなのだから、これ（翻訳）を高速化するために、 solv に func への参照をつけておいて、直接飛べるようにしたらいいのではないか。
-//       var at = this.solves.indexOf(solv);
-//       return(at == -1 ? null : this.funcs[this.ids[at]]);
-//     }
-    
-//     Calc.prototype.isIdListed = function(id){
-//       // sprout で使用
-//     }
-    
-    /*
-    calc
-    計算実行
-    強制フラグあり
-    
-    calcForce
-    計算ボタンのイベントハンドラ登録用。
-    calc(force=true) に相当。
-    
-    auto
-    自動計算on/off
-    配下の Func object 全部を連動させる。
-    
-    verbose
-    console.log出力のスイッチ。
-    配下の Func object 全部を連動させる。
-    自分自身の動作に影響はしない。
-    
-    funcs
-    Func object の配列
-    
-    addFunc
-    関数などを指定して、Func object の生成と登録を行う。
-    addEventListener 登録を行う。
-    逆引き登録も行う。
-    
-    recalcRequired
-    配下で recalcRequired || argsChanged を実施し、
-    計算の要不要情報を得る。
-    */
-    
     /*############################
     Solv / this.solv
     計算樹の要素のコンストラクタ
     child側が依存先で、先に計算する。
     ############################*/
-    
-    // self 廃止し func にする。
-    // children, parents には object を格納する。
     
     function Solv(func) {
       Object.defineProperties(this, {
@@ -539,10 +395,6 @@ define(function(){
                       var kids = this.children;
                       for(var i = 0; i < kids.length; i ++) {
                         if(kids[i].needCalc) {
-                          // kids[i] には id が格納されており、ここは動かない
-                          // このclass自身は格納する相手を、このプロパティ以外では決めてないので、使う側のルールの問題。
-                          // ただし、self が何を意味するのかというのが曖昧に残っている。
-                          // self を func に差し替えればいいか。初期化時に func は決まっているはずだから、 func をもらって初期化すればスマート。
                           return false;
                         }
                       }
@@ -569,76 +421,6 @@ define(function(){
     Solv.prototype.addParent = function(parent){
       this.parents.push(parent);
     }
-    
-    /*
-    kuro_var object を a === b で探す。
-    
-    独立変数から Func を探す。
-    ターゲットと一致する、 func.depends を含む func を総なめで探す。
-    ターゲットの値変更によって再計算が必要になるものを探せる。
-    
-    従属変数から Func を探す。
-    ターゲットと一致する、 func.var を持つ func を総なめで探す。
-    ターゲットの値を決める計算式を探せる。もしくは登録が無いかも。
-    
-    上記動作を高速化するためのインデックスを持つ。
-    funcs が配列なので、配列の位置番号が答え。
-    [a,c,b,a,,,] という object配列を持ち、
-    [0,1,2,4,,,] と、配列位置に対応させ、
-    一致する場所を検索する。
-    calc.addFunc によって、インデックスを更新する。
-    removeFunc 機能もいるか？
-    でも、削除は、他の func による使用もあるので単純ではない。
-    むしろ何もせず残して、対応するものがなければ、エラーでなく空振り、って動作にするか。
-    func object を直接更新して参照先などを変更した場合、連動しない。
-    つまり、このデータを手動更新しないと計算が違ってしまう。
-    
-    連動が難しいなら、インデックスしない方がいいかも？
-    object が hash 化できないこともあって、たいして高速にならないし。
-    重複する参照がたくさんあるときに、若干速くなるのか。
-    でも重複削除しよいうと思ったら、インデックス更新が重くなるし。
-    
-    毎回総なめしても、
-    計算式の数×独立変数の平均数、もしくは、独立変数の総和、程度のコスト。
-    a === b 比較は、しょせんはアドレス比較にすぎないので速いはず。
-    
-    スピードとは別の視点で、
-    循環計算を止めるための仕組みが必要。
-    計算依存のtreeを計算開始前に作ってしまい、
-    循環発生時点で止める。
-    
-    強制全計算のときに、
-    適当な順序でやると（登録順のような）、
-    依存関係による無駄な再計算が発生する。
-    依存未計算の無いものから優先的に計算しつつ、
-    動的に依存未計算を消しこんでいくしくみが欲しいかも。
-    そうすると、 Func に、動的な依存リストを登録できるようにするのか？
-    
-    循環判定
-    1. 最初にtreeを完成させる。
-    計算開始点に対応する solv を作成。funcのidを持つ。
-    id は funcs 配列上の順位を文字化したもの。
-    これに依存する func を検索し、その id （複数）を登録。
-    child id の数だけ分岐。
-    child に対応する solv を作成。
-    このとき、親検索できるように、親id (複数)も登録しておく。
-    以上を繰り返し。
-    終了条件
-    依存する func が無い。
-    既存の solv に戻った。（これだけでは循環したとは限らない。）
-    既存に戻った solv には、合流点として目印をつけておく。
-    2. 端点から計算していく。
-    端点とは、依存する func が無い終了点。
-    端点を計算したことで、消し込めば、それのみに依存するものが次の端点になる。
-    treeが全部消えてないのに端点が見つからないなら、それは循環している。
-    
-    全計算時は、
-    適当な開始点からはじめ、上と同じ処理をする。
-    終了すれば、残っている点から、再度適当な開始点を選び、繰り返す。
-    終了条件
-    すべての点に対応する solv が作られた。
-    これらを束ねるための root solv があるといいかも。
-    */
     
     /*############################
     共用補助関数
