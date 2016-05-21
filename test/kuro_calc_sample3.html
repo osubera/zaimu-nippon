@@ -57,7 +57,7 @@
   </style>
 </head><body><h1 class="title"></h1>
   <form>
-    <div class="detail">
+    <div id="detail">
       <div class="row item">
         <input type="text" class="unitprice" /><span class="sp3">×</span><input type="text" class="pieces" /><span class="sp3">=</span><input type="text" class="price" />
       </div>
@@ -96,6 +96,73 @@
           o1[i].innerText = title;
         }
         
+        var rowItemDivs = document.getElementById('detail').childNodes;
+        var subtotalBox = document.getElementById('subtotal');
+        var taxrateBox = document.getElementById('taxrate');
+        var taxBox = document.getElementById('tax');
+        var totalBox = document.getElementById('total');
+        
+        var unitprices = [];
+        var pieces = [];
+        var prices = [];
+        for(var i = 0; i < rowItemDivs.length; i++) {
+          if(!rowItemDivs[i].tagName || 
+            rowItemDivs[i].tagName.toLowerCase() != 'div') {
+              continue;
+          }
+          unitprices.push(new Kuro_base.number(0,
+            rowItemDivs[i].getElementsByClassName('unitprice')[0]));
+          pieces.push(new Kuro_base.number(0,
+            rowItemDivs[i].getElementsByClassName('pieces')[0]));
+          prices.push(new Kuro_base.number(0,
+            rowItemDivs[i].getElementsByClassName('price')[0]));
+        }
+        var subtotal = new Kuro_base.number(0, subtotalBox);
+        var taxrate = new Kuro_base.number(8, taxrateBox);
+        var tax = new Kuro_base.number(0, taxBox);
+        var total = new Kuro_base.number(0, totalBox);
+        
+        var cal = new Kuro_calc.calc;
+        cal.disableAuto = true;
+        
+        function makePrice(unitPrice, pieces) {
+          return(Math.floor(unitPrice * pieces));
+        }
+        
+        for(var i = 0; i < prices.length; i++) {
+          cal.addFunc(prices[i], makePrice, [unitprices[i], pieces[i]],
+            true, true, 'makePrice' + i);
+        }
+        
+        cal.addFunc(subtotal, function(prices) {
+            var sum = 0;
+            for(var i = 0; i < arguments.length; i++) {
+              sum += arguments[i];
+            }
+            return(sum);
+          }, prices, true, true, 'makeSubtotal');
+        
+        cal.addFunc(tax, function(subtotal, taxrate) {
+            return(Math.floor(subtotal * taxrate / 100));
+          }, [subtotal, taxrate], true, true, 'tax');
+        
+        cal.addFunc(total, function(subtotal, tax) {
+            return(subtotal + tax);
+          }, [subtotal, tax], true, true, 'total');
+        
+        function calcForce() {
+          cal.requestRecalc(this, true);
+        }
+        
+        document.getElementById("calc").addEventListener("click", calcForce);
+        
+        unitprices[0].value = 80;
+        unitprices[1].value = 120;
+        pieces[0].value = 3;
+        pieces[1].value = 5;
+        
+        cal.disableAuto = false;
+        cal.requestRecalc();
       });
     });
   </script>
