@@ -3,8 +3,8 @@
   <script src="../lib/require.js"></script>
   <style>
     form {
-      padding-left: calc(100% / 16);
-      padding-right: calc(100% / 16);
+      padding-left: calc(100% / 8);
+      padding-right: calc(100% / 8);
     }
     input {
       text-align: right;
@@ -15,6 +15,9 @@
     }
     .panel {
       margin-top: 0.6rem;
+    }
+    .sp1 {
+      padding-left: 1rem;
     }
     .sp2 {
       padding-right: 1rem;
@@ -31,13 +34,24 @@
       display: flex;
       justify-content: space-between;
     }
-    .c1 {
-      align-self: flex-start;
-      flex-basis: calc(100% / 8);
-    }
     @media only screen and (max-width: 639px) {
       form {
         padding: 0;
+      }
+      .sp1, .sp2, .sp3 {
+        padding: 0;
+      }
+      .row, .labeled {
+        /* display: inline; */
+        flex-direction: column;
+      }
+      .item {
+        margin-top: 0.3rem;
+        padding-top: 0.3rem;
+        border-top: medium solid green;
+      }
+      .total {
+        border-top: medium solid green;
       }
     }
   </style>
@@ -53,16 +67,22 @@
     </div>
     <div class="total">
       <div class="labeled withouttax">
-        <span class="c133">小計</span>
-        <div class="row withouttax">
+        <span class="sp1">小計</span>
+        <div class="row">
           <input type="text" id="subtotal" />
         </div>
       </div>
-      <div class="row tax">
-        <span class="c1">消費税</span><span>(</span><input type="text" id="taxrate" /><span class="sp2">%)</span><input type="text" id="tax" />
+      <div class="labeled tax">
+        <span class="sp1">消費税</span>
+        <div class="row">
+          <span>(</span><input type="text" id="taxrate" /><span class="sp2">%)</span><input type="text" id="tax" />
+        </div>
       </div>
-      <div class="row overall">
-        <span class="c1">総計</span><input type="text" id="total" />
+      <div class="labeled overall">
+        <span class="sp1">総計</span>
+        <div class="row">
+          <input type="text" id="total" />
+        </div>
       </div>
     </div>
     <div class="row panel"><button type="button" id="calc">再計算</button></div>
