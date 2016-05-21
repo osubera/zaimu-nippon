@@ -5,18 +5,35 @@
     form {
       padding-left: calc(100% / 16);
       padding-right: calc(100% / 16);
-      text-align: right;
     }
     input {
       text-align: right;
     }
-    .c1 {
-      position: absolute;
-      left: calc(100% / 8);
-    }
     .total {
       margin-top: 0.3rem;
       border-top: thin solid gray;
+    }
+    .panel {
+      margin-top: 0.6rem;
+    }
+    .sp2 {
+      padding-right: 1rem;
+    }
+    .sp3 {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+    .row {
+      display: flex;
+      justify-content: flex-end;
+    }
+    .labeled {
+      display: flex;
+      justify-content: space-between;
+    }
+    .c1 {
+      align-self: flex-start;
+      flex-basis: calc(100% / 8);
     }
     @media only screen and (max-width: 639px) {
       form {
@@ -27,25 +44,28 @@
 </head><body><h1 class="title"></h1>
   <form>
     <div class="detail">
-      <div class="item">
-        <input type="text" class="unitprice" /><span>×</span><input type="text" class="pieces" /><span>=</span><input type="text" class="price" />
+      <div class="row item">
+        <input type="text" class="unitprice" /><span class="sp3">×</span><input type="text" class="pieces" /><span class="sp3">=</span><input type="text" class="price" />
       </div>
-      <div class="item">
-        <input type="text" class="unitprice" /><span>×</span><input type="text" class="pieces" /><span>=</span><input type="text" class="price" />
+      <div class="row item">
+        <input type="text" class="unitprice" /><span class="sp3">×</span><input type="text" class="pieces" /><span class="sp3">=</span><input type="text" class="price" />
       </div>
     </div>
     <div class="total">
-      <div class="withouttax">
-        <span class="c1">小計</span><input type="text" id="subtotal" />
+      <div class="labeled withouttax">
+        <span class="c133">小計</span>
+        <div class="row withouttax">
+          <input type="text" id="subtotal" />
+        </div>
       </div>
-      <div class="tax">
-        <span class="c1">消費税</span><input type="text" id="taxrate" /><input type="text" id="tax" />
+      <div class="row tax">
+        <span class="c1">消費税</span><span>(</span><input type="text" id="taxrate" /><span class="sp2">%)</span><input type="text" id="tax" />
       </div>
-      <div class="overall">
+      <div class="row overall">
         <span class="c1">総計</span><input type="text" id="total" />
       </div>
     </div>
-    <div class="panel"><button type="button" id="calc">再計算</button></div>
+    <div class="row panel"><button type="button" id="calc">再計算</button></div>
   </form>
   <script>
     require(['../lib/config'], function(){
