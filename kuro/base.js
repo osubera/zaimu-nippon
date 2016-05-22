@@ -8,10 +8,25 @@ Kuro_base, as a static class
 
 define(function(){
   
+  /*
+基本タイプと、list以降の複合タイプを区別するためのプロパティを持つ。
+isBasic とか isMultiple とか isIntegrated とか。
+これを calc 側で使って、動作切換する。
+
+list系用に pager みたいなクラスを作る。
+こいつが複数の syncer を持つ。
+syncer の数は var の数以下でよく、
+数が少ないときに、ページ切り替え（スクロール動作）をする。
+切り替えは、
+element と eventlistner を保持したままの syncer を、
+別の var に張り替えることで行う。
+
+  */
+  
   var Kuro_base = new function(){
     
     /*############################
-    Syncher / this.syncher
+    Syncer / this.syncer
     DOM element と値同期するコンストラクタ
     ############################*/
     

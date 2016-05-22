@@ -8,6 +8,37 @@ Kuro_calc, as a static class
 
 define(function(){
   
+  /*
+func を拡張するか、継承するかして、list対応する。
+addFunc で、対象varを判定して、登録方法を変える。
+
+list系は個別varでなくlist全体をcellやdependsとして持ち、
+lastArgs系の動作もそれに合わせる。
+
+table系の登録は、
+表面的にはtable的にaddFuncを記述できるが、
+それはsyntax sugar で、
+内部では list系として登録する。
+
+list系の内部var数は動的に変わるので、
+登録としては func １つで list １つ、とする。
+buildTree する前の unlisted を作る段階で、
+clone funcs するときに、
+list系の関数を内部的に展開した一時funcを作成して、
+solv と serialized は内部varの数に拡張する。
+
+この時、
+内部varが個別登録されたfuncをすでに持っていたら、
+list数式による展開上書きをしない。
+同じvarに複数数式を登録していない前提で計算するので。
+
+eventlistener は、
+展開時に個別セルについて発生させるので、
+list全体へのelement登録時にlistenerを作らないよう、
+addEventListener をskipするか後でremoveするかする。
+
+  */
+  
   var Kuro_calc = new function(){
     
     /*############################
