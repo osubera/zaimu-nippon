@@ -37,6 +37,23 @@ eventlistener は、
 list全体へのelement登録時にlistenerを作らないよう、
 addEventListener をskipするか後でremoveするかする。
 
+初期数式登録がパターン化できるので、
+element id, 型, 初期値, 数式, 等を一括指定できる、
+便利メソッドがあるといいかも。
+getElementById と new Kuro_base. と addFunc をまとめて
+面倒みてくれるようなやつ。
+こいつが、
+内部変数の一覧を持っていて、それを参照できるようにしたいから、
+専用の新規クラスを作った方がいいかも。
+calcの持つ計算機能と分離した方が良さそうだから。
+関数登録のときに、
+cell参照できる名前が必要になるから、
+そいつらをhash形式にして、
+変数名みたいなのを指定できるようにして、
+funcのtag名を自動で、 make + 変数名 とかにすればいい感じかも。
+
+regist ぐらいのクラス名？
+
   */
   
   var Kuro_calc = new function(){
