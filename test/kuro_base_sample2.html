@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8" /><title class="title"></title>
+  <script src="../lib/require.js"></script>
+  <style>
+    form {
+      width: 40%;
+      padding-left: 10%;
+    }
+    input {
+      text-align: right;
+    }
+    .sales {
+      text-align: right;
+    }
+    .sum {
+      margin-top: 0.3rem;
+      border-top: thin solid gray;
+    }
+    @media only screen and (max-width: 639px) {
+      form {
+        width: 80%;
+        padding-left: 5%;
+      }
+    }
+  </style>
+</head><body><h1 class="title"></h1>
+  <form>
+    <div class="sales"><input type="text" id="kamiki" /></div>
+    <div class="sales"><input type="text" id="simoki" /></div>
+    <div class="sales sum"><span>計</span><input type="text" id="nendo" /></div>
+    <div class="sales"><button type="button" id="calc">再計算</button></div>
+  </form>
+  <script>
+    require(['../lib/config'], function(){
+      require(['kuro/base'], function(Kuro_base){
+        var title = 'Kuro_base sample';
+        var o1 = document.getElementsByClassName('title');
+        for(var i=0; i<o1.length; i++) {
+          o1[i].innerText = title;
+        }
+        
+        function calc() {
+          a.value = s1.value + s2.value;
+        }
+        
+        var s1box = document.getElementById('kamiki');
+        var s2box = document.getElementById('simoki');
+        var abox = document.getElementById('nendo');
+        
+        var s1 = new Kuro_base.number(1000000, s1box);
+        var s2 = new Kuro_base.number(2000000, s2box);
+        var a = new Kuro_base.number(0, abox);
+        /*
+        s1.sync = s1box;
+        s2.sync = s2box;
+        a.sync = abox;
+        */
+        
+        s1box.addEventListener("change", calc);
+        s2box.addEventListener("change", calc);
+        document.getElementById("calc").addEventListener("click", calc);
+        
+        // 初回計算
+        calc();
+      });
+    });
+  </script>
+</body></html>
