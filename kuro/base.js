@@ -111,6 +111,7 @@ element と eventlistner を保持したままの syncer を、
       var _value;
       var _sync;
       Object.defineProperties(this, {
+        "dimension": { value: 0, configurable: true },
         "value": { get: function(){ return _value; },
                    set: function(value){
                      this.parseValue(value);
@@ -423,6 +424,7 @@ element と eventlistner を保持したままの syncer を、
       var _defaultValue = 0;
       
       Object.defineProperties(this, {
+        "dimension": { value: 1, configurable: true },
         "value": { get: function() {
                         var v = [];
                         var n = _value.length
@@ -938,7 +940,11 @@ element と eventlistner を保持したままの syncer を、
     二次元表（列優先）データベース変数のコンストラクタ
     ############################*/
     
-    function KuroTable(value) {
+  function KuroTable(length, columns) {
+      Object.defineProperties(this, {
+        "dimension": { value: 2, configurable: true },
+        "columns": { value: {}, writable: true, configurable: true }
+      });
     }
     this.table = KuroTable;
     
