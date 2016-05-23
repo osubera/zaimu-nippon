@@ -943,6 +943,7 @@ element と eventlistner を保持したままの syncer を、
   function KuroTable(length, columns) {
       Object.defineProperties(this, {
         "dimension": { value: 2, configurable: true },
+        "length": { value: 0, writable: true, configurable: true },
         "columns": { value: {}, writable: true, configurable: true }
       });
     }
