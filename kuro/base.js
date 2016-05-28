@@ -940,7 +940,7 @@ element と eventlistner を保持したままの syncer を、
     二次元表（列優先）データベース変数のコンストラクタ
     ############################*/
     
-  function KuroTable(length, columns) {
+  function KuroTable(length, columns, types) {
       Object.defineProperties(this, {
         "dimension": { value: 2, configurable: true },
         "length": { value: 0, writable: true, configurable: true },
