@@ -940,12 +940,76 @@ element と eventlistner を保持したままの syncer を、
     二次元表（列優先）データベース変数のコンストラクタ
     ############################*/
     
-  function KuroTable(length, columns, types) {
+    function KuroTable(length, columns, types) {
+      var _value;
+      
       Object.defineProperties(this, {
         "dimension": { value: 2, configurable: true },
-        "length": { value: 0, writable: true, configurable: true },
-        "columns": { value: {}, writable: true, configurable: true }
+        "length": { get function(){
+                      var k = Object.keys(_value);
+                      if(k.length == 0) { return 0; }
+                      else { return _value[k[0]].length; }
+                    },
+                    configurable: true },
+        "columns": { value: {}, writable: true, configurable: true },
+        "factory": { value: KuroList, writable: true, configurable: true },
+        "keys": { get: function(){
+                    return Object.keys(_value);
+                  },
+                  enumerable: true, configurable: true
+                }
       });
+      
+      function EachColumn(method, args) {
+        // 内部変数 _value を直接呼ぶので継承できない。
+        var v = [];
+        for(k in _value) {
+          v.push(_value[k][method].apply(_value[k], args));
+        }
+        return(v);
+      }
+      this.eachColumn = EachColumn;
+      
+      function EachColumnHash(method, args) {
+        // 内部変数 _value を直接呼ぶので継承できない。
+        var v = {};
+        for(k in _value) {
+          v[k] = _value[k][method].apply(_value[k], args);
+        }
+        return(v);
+      }
+      this.eachColumnHash = EachColumnHash;
+      
+      // Reset系は、内部objectをすべて作りなおす、総入れ替え。
+      
+      function resetByLength(length, columns, types) {
+        // 内部変数 _value を直接変更するので継承できない。
+        var co = this.factory;
+        _value = {};
+        for(var i = 0; i < columns.length; i++) {
+          _value[columns[i]] = new co(length, types[i]);
+        }
+      }
+      this.resetByLength = resetByLength;
+      this.resetByLength(length, columns, types);
+      
+      var _columnMethods = [
+        'updateLength', 'increase', 'decrease', 'move', 'clearItem',
+        'clearAt', 'at', 'select', 'filter', 'each'
+      ];
+      for(var i = 0; i < _columnMethods.length; i++) {
+        this[_columnMethods[i]] = function(args) {
+          this.eachColumn.call(this, _columnMethods[i], arguments);
+        }
+      }
+      
+      this.toString = function(){
+        var p = this.eachColumn('toString');
+        return(p.join(': '));
+      };
+      this.toJSON = function(){
+        return(this.eachColumnHash('toJSON'));
+      }
     }
     this.table = KuroTable;
     
