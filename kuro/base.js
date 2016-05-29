@@ -945,13 +945,17 @@ element と eventlistner を保持したままの syncer を、
       
       Object.defineProperties(this, {
         "dimension": { value: 2, configurable: true },
-        "length": { get function(){
+        "length": { get: function(){
                       var k = Object.keys(_value);
                       if(k.length == 0) { return 0; }
                       else { return _value[k[0]].length; }
                     },
                     configurable: true },
-        "columns": { value: {}, writable: true, configurable: true },
+        "columns": { get: function(){ return _value; },
+                     set: function(value){
+                       this.parseColumn(value);
+                     },
+                     configurable: true },
         "factory": { value: KuroList, writable: true, configurable: true },
         "keys": { get: function(){
                     return Object.keys(_value);
@@ -960,15 +964,24 @@ element と eventlistner を保持したままの syncer を、
                 }
       });
       
-      function EachColumn(method, args) {
+      function parseColumn(value) {
+        // 内部変数 _value を直接呼ぶので継承できない。
+        _value = value;
+      }
+      this.parseColumn = parseColumn;
+      
+      function eachColumn(method, args) {
         // 内部変数 _value を直接呼ぶので継承できない。
         var v = [];
         for(k in _value) {
+          console.log(k);
+          console.log(method);
+          console.log(_value[k]);
           v.push(_value[k][method].apply(_value[k], args));
         }
         return(v);
       }
-      this.eachColumn = EachColumn;
+      this.eachColumn = eachColumn;
       
       function EachColumnHash(method, args) {
         // 内部変数 _value を直接呼ぶので継承できない。
@@ -986,8 +999,12 @@ element と eventlistner を保持したままの syncer を、
         // 内部変数 _value を直接変更するので継承できない。
         var co = this.factory;
         _value = {};
-        for(var i = 0; i < columns.length; i++) {
-          _value[columns[i]] = new co(length, types[i]);
+        if(!Array.isArray(columns)) { return; }
+        
+        var n = columns.length;
+        var ty = lengthenArray(types, n);
+        for(var i = 0; i < n; i++) {
+          _value[columns[i]] = new co(length, ty[i]);
         }
       }
       this.resetByLength = resetByLength;
@@ -995,10 +1012,11 @@ element と eventlistner を保持したままの syncer を、
       
       var _columnMethods = [
         'updateLength', 'increase', 'decrease', 'move', 'clearItem',
-        'clearAt', 'at', 'select', 'filter', 'each'
+        'clearAt', 'item', 'at', 'select', 'filter', 'each'
       ];
       for(var i = 0; i < _columnMethods.length; i++) {
         this[_columnMethods[i]] = function(args) {
+          // この方法では関数内の _columnMethods[i] は常に undefined
           this.eachColumn.call(this, _columnMethods[i], arguments);
         }
       }

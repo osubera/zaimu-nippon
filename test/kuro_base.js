@@ -78,6 +78,7 @@ describe('Kuro_base.var', function(){
     
     describe('new Kuro_base.var', function(){
       it('should have properties', function(){
+        expect(x).to.have.property('dimension', 0);
         expect(x).to.have.property('value', undefined);
         expect(x).to.have.property('defaultValue', undefined);
         expect(x).to.have.property('sync', undefined);
@@ -617,6 +618,7 @@ describe('Kuro_base.list', function(){
     
     describe('new Kuro_base.list', function(){
       it('should have properties', function(){
+        expect(x).to.have.property('dimension', 1);
         expect(x).to.have.property('value');
         expect(x).to.have.property('type', 'number');
         expect(x).to.have.property('length', 0);
@@ -700,7 +702,7 @@ describe('Kuro_base.list', function(){
         expect(function(){x.updateValueAt(-1,999)}).to.throw(RangeError);
         expect(function(){x.updateValueAt(3,999)}).to.throw(RangeError);
       });
-      it('should chage length', function(){
+      it('should change length', function(){
         x.increase(3);
         expect(x.length).to.equal(6);
         expect(x.value).to.deep.equal([100,200,400,0,0,0]);
@@ -1084,5 +1086,66 @@ describe('Kuro_base.unescapeString', function(){
   it('should un-escape string', function(){
     expect(Kuro_base.unescapeString('unescape ""quotes""', {raw: '"', esc: '""'})).to.equal('unescape "quotes"');
     expect(Kuro_base.unescapeString('no quotes', {raw: '"', esc: '""'})).to.equal('no quotes');
+  });
+});
+
+describe('Kuro_base.table', function(){
+  it('should be a function', function(){
+    expect(Kuro_base.table).to.be.a('function');
+  });
+  it('should be a constructor', function(){
+    var x = new Kuro_base.table;
+    expect(x).to.be.an('object')
+      .and.to.be.instanceOf(Kuro_base.table);
+    
+    describe('new Kuro_base.table', function(){
+      it('should have properties', function(){
+        expect(x).to.have.property('dimension', 2);
+        expect(x).to.have.property('length', 0);
+        expect(x).to.have.property('columns');
+        expect(x).to.have.property('factory', Kuro_base.list);
+        expect(x).to.have.property('keys');
+      });
+      it('should respond to methods', function(){
+        expect(x).to.respondTo('parseColumn');
+        expect(x).to.respondTo('eachColumn');
+        expect(x).to.respondTo('toString');
+        expect(x).to.respondTo('toJSON');
+        expect(x).to.respondTo('resetByLength');
+        expect(x).to.respondTo('updateLength');
+        expect(x).to.respondTo('increase');
+        expect(x).to.respondTo('decrease');
+        expect(x).to.respondTo('move');
+        expect(x).to.respondTo('clearItem');
+        expect(x).to.respondTo('clearAt');
+        expect(x).to.respondTo('item');
+        expect(x).to.respondTo('at');
+        expect(x).to.respondTo('select');
+        expect(x).to.respondTo('filter');
+        expect(x).to.respondTo('each');
+      });
+      it('should be enumerable', function(){
+        expect(x.propertyIsEnumerable('keys')).to.be.true;
+      });
+      it('should have resetByLength() method to set length and columns properties', function(){
+        x.resetByLength(5, ['a','b','c']);
+        expect(x.length).to.equal(5);
+        expect(Object.keys(x.columns).length).to.equal(3);
+        expect(Object.keys(x.columns)).to.deep.equal(['a','b','c']);
+        expect(x.columns['a']).to.be.instanceOf(Kuro_base.list);
+        expect(x.columns['b']).to.be.instanceOf(Kuro_base.list);
+        expect(x.columns['c']).to.be.instanceOf(Kuro_base.list);
+        expect(x.columns['a'].length).to.equal(5);
+        expect(x.columns['b'].length).to.equal(5);
+        expect(x.columns['c'].length).to.equal(5);
+      });
+      it('should change length', function(){
+        x.increase(3);
+        expect(x.length).to.equal(8);
+        expect(x.columns['a'].length).to.equal(8);
+        expect(x.columns['b'].length).to.equal(8);
+        expect(x.columns['c'].length).to.equal(8);
+      });
+    });
   });
 });
