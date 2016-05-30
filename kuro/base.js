@@ -940,6 +940,20 @@ element と eventlistner を保持したままの syncer を、
     二次元表（列優先）データベース変数のコンストラクタ
     ############################*/
     
+    /*
+    抜けてると思われるもの。
+    value
+    rows
+    eachRow
+    sync
+    setElement
+    resetByValues
+    updateValues
+    updateValueAt
+    parseCSV
+    parseJSON
+    */
+    
     function KuroTable(length, columns, types) {
       var _value;
       
