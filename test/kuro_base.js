@@ -1145,6 +1145,16 @@ describe('Kuro_base.table', function(){
         expect(x.columns['a'].length).to.equal(8);
         expect(x.columns['b'].length).to.equal(8);
         expect(x.columns['c'].length).to.equal(8);
+        x.decrease(2);
+        expect(x.length).to.equal(6);
+        expect(x.columns['a'].length).to.equal(6);
+        expect(x.columns['b'].length).to.equal(6);
+        expect(x.columns['c'].length).to.equal(6);
+        x.updateLength(4);
+        expect(x.length).to.equal(4);
+        expect(x.columns['a'].length).to.equal(4);
+        expect(x.columns['b'].length).to.equal(4);
+        expect(x.columns['c'].length).to.equal(4);
       });
     });
   });

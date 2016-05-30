@@ -974,16 +974,13 @@ element と eventlistner を保持したままの syncer を、
         // 内部変数 _value を直接呼ぶので継承できない。
         var v = [];
         for(k in _value) {
-          console.log(k);
-          console.log(method);
-          console.log(_value[k]);
           v.push(_value[k][method].apply(_value[k], args));
         }
         return(v);
       }
       this.eachColumn = eachColumn;
       
-      function EachColumnHash(method, args) {
+      function eachColumnHash(method, args) {
         // 内部変数 _value を直接呼ぶので継承できない。
         var v = {};
         for(k in _value) {
@@ -991,7 +988,7 @@ element と eventlistner を保持したままの syncer を、
         }
         return(v);
       }
-      this.eachColumnHash = EachColumnHash;
+      this.eachColumnHash = eachColumnHash;
       
       // Reset系は、内部objectをすべて作りなおす、総入れ替え。
       
@@ -1015,10 +1012,11 @@ element と eventlistner を保持したままの syncer を、
         'clearAt', 'item', 'at', 'select', 'filter', 'each'
       ];
       for(var i = 0; i < _columnMethods.length; i++) {
-        this[_columnMethods[i]] = function(args) {
-          // この方法では関数内の _columnMethods[i] は常に undefined
-          this.eachColumn.call(this, _columnMethods[i], arguments);
-        }
+        this[_columnMethods[i]] = function(method){
+          return function(args) {
+            this.eachColumn.call(this, method, arguments);
+          };
+        }(_columnMethods[i]);
       }
       
       this.toString = function(){
