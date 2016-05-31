@@ -984,25 +984,61 @@ element と eventlistner を保持したままの syncer を、
       }
       this.parseColumn = parseColumn;
       
-      function eachColumn(method, args) {
+      function eachColumnArray(method, args) {
         // 内部変数 _value を直接呼ぶので継承できない。
         var v = [];
-        for(k in _value) {
+        for(var k in _value) {
           v.push(_value[k][method].apply(_value[k], args));
         }
         return(v);
       }
-      this.eachColumn = eachColumn;
+      this.eachColumnArray = eachColumnArray;
       
       function eachColumnHash(method, args) {
         // 内部変数 _value を直接呼ぶので継承できない。
         var v = {};
-        for(k in _value) {
+        for(var k in _value) {
           v[k] = _value[k][method].apply(_value[k], args);
         }
         return(v);
       }
       this.eachColumnHash = eachColumnHash;
+      
+      function setEachColumnArray(method, args) {
+        // 内部変数 _value を直接呼ぶので継承できない。
+        var n = args.length;
+        var key = this.keys;
+        for(var i = 0; i < key.length; i++) {
+          var p = [];
+          for(var j = 0; j < n; j++) {
+            p.push(args[j][i]);
+          }
+          _value[key[i]][method].apply(_value[key[i]], p);
+        }
+      }
+      this.setEachColumnArray = setEachColumnArray;
+      
+      function setEachColumnHash(method, args) {
+        // 内部変数 _value を直接呼ぶので継承できない。
+        var n = args.length;
+        for(var k in _value) {
+          var p = [];
+          for(var j = 0; j < n; j++) {
+            p.push(args[j][k]);
+          }
+          _value[k][method].apply(_value[k], p);
+        }
+      }
+      this.setEachColumnHash = setEachColumnHash;
+      
+      function setEachColumn(method, args) {
+        if(Array.isArray(args[0])) {
+          setEachColumnArray(method, args);
+        } else {
+          setEachColumnHash(method, args);
+        }
+      }
+      this.setEachColumn = setEachColumn;
       
       // Reset系は、内部objectをすべて作りなおす、総入れ替え。
       
@@ -1028,13 +1064,24 @@ element と eventlistner を保持したままの syncer を、
       for(var i = 0; i < _columnMethods.length; i++) {
         this[_columnMethods[i]] = function(method){
           return function(args) {
-            this.eachColumn.call(this, method, arguments);
+            this.eachColumnArray.call(this, method, arguments);
           };
         }(_columnMethods[i]);
       }
       
+      var _columnSetMethods = [
+        'resetByValues', 'updateValues'
+      ];
+      for(var i = 0; i < _columnSetMethods.length; i++) {
+        this[_columnSetMethods[i]] = function(method){
+          return function(args) {
+            this.setEachColumn.call(this, method, arguments);
+          };
+        }(_columnSetMethods[i]);
+      }
+      
       this.toString = function(){
-        var p = this.eachColumn('toString');
+        var p = this.eachColumnArray('toString');
         return(p.join(': '));
       };
       this.toJSON = function(){

@@ -1108,9 +1108,15 @@ describe('Kuro_base.table', function(){
       });
       it('should respond to methods', function(){
         expect(x).to.respondTo('parseColumn');
-        expect(x).to.respondTo('eachColumn');
+        expect(x).to.respondTo('eachColumnArray');
+        expect(x).to.respondTo('eachColumnHash');
+        expect(x).to.respondTo('setEachColumnArray');
+        expect(x).to.respondTo('setEachColumnHash');
+        expect(x).to.respondTo('setEachColumn');
         expect(x).to.respondTo('toString');
         expect(x).to.respondTo('toJSON');
+        expect(x).to.respondTo('resetByValues');
+        expect(x).to.respondTo('updateValues');
         expect(x).to.respondTo('resetByLength');
         expect(x).to.respondTo('updateLength');
         expect(x).to.respondTo('increase');
