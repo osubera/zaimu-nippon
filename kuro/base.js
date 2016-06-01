@@ -942,15 +942,15 @@ element と eventlistner を保持したままの syncer を、
     
     /*
     抜けてると思われるもの。
-    value
-    rows
-    eachRow
-    sync
-    setElement
+getのみ    value
+今は実装できない    rows
+    eachRow(fn)
+今は実装できない    sync
+今は実装できない    setElement
     resetByValues
     updateValues
     updateValueAt
-    parseCSV
+不要    parseCSV
     parseJSON
     */
     
