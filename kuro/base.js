@@ -942,16 +942,10 @@ element と eventlistner を保持したままの syncer を、
     
     /*
     抜けてると思われるもの。
-getのみ    value
 今は実装できない    rows
-    eachRow(fn)
 今は実装できない    sync
 今は実装できない    setElement
-    resetByValues
-    updateValues
-    updateValueAt
-不要    parseCSV
-    parseJSON
+詳細未定    eachRow(fn)
     */
     
     function KuroTable(length, columns, types) {
@@ -959,6 +953,19 @@ getのみ    value
       
       Object.defineProperties(this, {
         "dimension": { value: 2, configurable: true },
+        "value": { get: function(){
+                     var v = {};
+                     for(var k in _value) {
+                       v[k] = _value[k].value;
+                     }
+                     return v;
+                   },
+                   set: function(value) {
+                     for(var k in _value) {
+                       _value[k].value = value[k];
+                     }
+                   },
+                   configurable: true },
         "length": { get: function(){
                       var k = Object.keys(_value);
                       if(k.length == 0) { return 0; }
@@ -1057,6 +1064,14 @@ getのみ    value
       this.resetByLength = resetByLength;
       this.resetByLength(length, columns, types);
       
+      // Update系は、内部objectをできるだけ保持し値だけを入れ替える。
+      
+      function updateValueAt(column, row, value) {
+        // 内部変数 _value を直接呼ぶので継承できない。
+        _value[column].updateValueAt(row, value);
+      }
+      this.updateValueAt = updateValueAt;
+      
       var _columnMethods = [
         'updateLength', 'increase', 'decrease', 'move', 'clearItem',
         'clearAt', 'item', 'at', 'select', 'filter', 'each'
@@ -1084,9 +1099,15 @@ getのみ    value
         var p = this.eachColumnArray('toString');
         return(p.join(': '));
       };
+      
       this.toJSON = function(){
         return(this.eachColumnHash('toJSON'));
       }
+      
+      function parseJSON(text) {
+        this.updateValues(JSON.parse(text));
+      }
+      this.parseJSON = parseJSON;
     }
     this.table = KuroTable;
     
