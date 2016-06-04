@@ -1101,6 +1101,7 @@ describe('Kuro_base.table', function(){
     describe('new Kuro_base.table', function(){
       it('should have properties', function(){
         expect(x).to.have.property('dimension', 2);
+        expect(x).to.have.property('value');
         expect(x).to.have.property('length', 0);
         expect(x).to.have.property('columns');
         expect(x).to.have.property('factory', Kuro_base.list);
@@ -1115,8 +1116,10 @@ describe('Kuro_base.table', function(){
         expect(x).to.respondTo('setEachColumn');
         expect(x).to.respondTo('toString');
         expect(x).to.respondTo('toJSON');
+        expect(x).to.respondTo('parseJSON');
         expect(x).to.respondTo('resetByValues');
         expect(x).to.respondTo('updateValues');
+        expect(x).to.respondTo('updateValueAt');
         expect(x).to.respondTo('resetByLength');
         expect(x).to.respondTo('updateLength');
         expect(x).to.respondTo('increase');
@@ -1161,6 +1164,20 @@ describe('Kuro_base.table', function(){
         expect(x.columns['a'].length).to.equal(4);
         expect(x.columns['b'].length).to.equal(4);
         expect(x.columns['c'].length).to.equal(4);
+      });
+      it('should have resetByValues() method to set values', function(){
+        x.resetByValues({
+          force: ['A','long','time','ago','in','a','galaxy'],
+          sequence: [4,5,6,1,2,3,7]
+        });
+        expect(x.length).to.equal(7);
+        expect(x.keys.length).to.equal(2);
+        expect(x.columns.force.type).to.equal('string');
+        expect(x.columns.sequence.type).to.equal('number');
+        expect(x.value).to.deep.equal({
+          force: ['A','long','time','ago','in','a','galaxy'],
+          sequence: [4,5,6,1,2,3,7]
+        });
       });
     });
   });

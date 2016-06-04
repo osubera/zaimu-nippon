@@ -961,6 +961,7 @@ element と eventlistner を保持したままの syncer を、
                      return v;
                    },
                    set: function(value) {
+                     // key更新しないので、既存列への更新のみ
                      for(var k in _value) {
                        _value[k].value = value[k];
                      }
@@ -1064,6 +1065,18 @@ element と eventlistner を保持したままの syncer を、
       this.resetByLength = resetByLength;
       this.resetByLength(length, columns, types);
       
+      function resetByValues(value) {
+        // 内部変数 _value を直接変更するので継承できない。
+        // keyそのものを更新するので、eachColumn系が使えない。
+        var co = this.factory;
+        _value = {};
+        for(var k in value) {
+          _value[k] = new co;
+          _value[k].resetByValues(value[k]);
+        }
+      }
+      this.resetByValues = resetByValues;
+      
       // Update系は、内部objectをできるだけ保持し値だけを入れ替える。
       
       function updateValueAt(column, row, value) {
@@ -1085,7 +1098,7 @@ element と eventlistner を保持したままの syncer を、
       }
       
       var _columnSetMethods = [
-        'resetByValues', 'updateValues'
+        'updateValues'
       ];
       for(var i = 0; i < _columnSetMethods.length; i++) {
         this[_columnSetMethods[i]] = function(method){
