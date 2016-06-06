@@ -521,6 +521,7 @@ element と eventlistner を保持したままの syncer を、
         for(var i = 0; i < n; i++) {
           _value[i] = new co(v[i]);
           _value[i].defaultValue = _defaultValue;
+          // 子要素がstringとかのときに、defaultを0で上書きするのが良くない。
         }
       }
       this.resetByValues = resetByValues;

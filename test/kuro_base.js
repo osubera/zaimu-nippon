@@ -1179,6 +1179,24 @@ describe('Kuro_base.table', function(){
           sequence: [4,5,6,1,2,3,7]
         });
       });
+      it('should have updateValues() method to set values', function(){
+        x.updateValues({
+          force: ['far','far','away'],
+          sequence: [8,9,10]
+        });
+        expect(x.value).to.deep.equal({
+          force: ['far','far','away','ago','in','a','galaxy'],
+          sequence: [8,9,10,1,2,3,7]
+        });
+        x.updateValues({
+          darkside: ['more','power'],
+          sequence: [undefined,undefined,undefined,0]
+        });
+        expect(x.value).to.deep.equal({
+          force: ['far','far','away','ago','in','a','galaxy'],
+          sequence: [8,9,10,0,2,3,7]
+        });
+      });
     });
   });
 });
