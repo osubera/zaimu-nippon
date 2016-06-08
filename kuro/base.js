@@ -421,7 +421,7 @@ element と eventlistner を保持したままの syncer を、
     function KuroList(length, type) {
       var _value;
       var _type;
-      var _defaultValue = 0;
+      var _defaultValue = undefined;
       
       Object.defineProperties(this, {
         "dimension": { value: 1, configurable: true },
@@ -442,11 +442,11 @@ element と eventlistner を保持したままの syncer を、
                       },
                       configurable: true },
         "defaultValue": { get: function(){ return _defaultValue; },
-                                 set: function(value){
-                                    _defaultValue = value;
-                                    Each(function(o){ o.defaultValue = value; });
-                                 },
-                                 configurable: true },
+                          set: function(value){
+                            _defaultValue = value;
+                            updateEachDefaultValue(value);
+                          },
+                          configurable: true },
         "defaultType": { value: 'number', writable: true, configurable: true },
         "type": { get: function(){ return _type; }, configurable: true },
         "length": { get: function(){ return _value.length; },
@@ -497,8 +497,8 @@ element と eventlistner を保持したままの syncer を、
         _value = new Array(n);
         for(var i = 0; i < n; i++) {
           _value[i] = new co(v);
-          _value[i].defaultValue = v;
         }
+        updateEachDefaultValue(v);
       }
       this.resetByLength = resetByLength;
       this.resetByLength(length, type);
@@ -520,9 +520,8 @@ element と eventlistner を保持したままの syncer を、
         _value = new Array(n);
         for(var i = 0; i < n; i++) {
           _value[i] = new co(v[i]);
-          _value[i].defaultValue = _defaultValue;
-          // 子要素がstringとかのときに、defaultを0で上書きするのが良くない。
         }
+        updateEachDefaultValue(_defaultValue);
       }
       this.resetByValues = resetByValues;
       
@@ -569,6 +568,14 @@ element と eventlistner を保持したままの syncer を、
       }
       this.parseJSON = parseJSON;
       
+      function updateEachDefaultValue(value) {
+        // _defaultValue と、もらった引数の整合性は、無視する。
+        // 子要素の型は多様なので、明確に示された時のみ上書きする。
+        if(value === undefined) { return; }
+        Each(function(o){ o.defaultValue = value; });
+      }
+      this.updateEachDefaultValue = updateEachDefaultValue;
+      
       function updateLength(length) {
         var diff = Number.parseInt(length) - this.length;
         if(diff > 0) { this.increase(diff); }
@@ -585,9 +592,11 @@ element と eventlistner を保持したままの syncer を、
         var co = this.factory;
         for(var i = 0; i < x; i++) {
           var o = new co(_defaultValue);
-          o.defaultValue = _defaultValue;
           _value.push(o);
         }
+        updateEachDefaultValue(_defaultValue);
+        // これは増加分だけでなく全部書き換える。
+        // 無駄な動作だが、今のところこれでいく。
       }
       this.increase = increase;
       
@@ -1013,11 +1022,15 @@ element と eventlistner を保持したままの syncer を、
       }
       this.eachColumnHash = eachColumnHash;
       
+      /*
       function setEachColumnArray(method, args) {
         // 内部変数 _value を直接呼ぶので継承できない。
         var n = args.length;
         var key = this.keys;
+        // ここの this は table ではない。
         for(var i = 0; i < key.length; i++) {
+          if(n == 1 && args[0][i] === undefined) { continue; }
+          // 単独undefinedは、無効なデータとみなす。
           var p = [];
           for(var j = 0; j < n; j++) {
             p.push(args[j][i]);
@@ -1031,6 +1044,8 @@ element と eventlistner を保持したままの syncer を、
         // 内部変数 _value を直接呼ぶので継承できない。
         var n = args.length;
         for(var k in _value) {
+          if(n == 1 && args[0][k] === undefined) { continue; }
+          // 単独undefinedは、無効なデータとみなす。
           var p = [];
           for(var j = 0; j < n; j++) {
             p.push(args[j][k]);
@@ -1039,12 +1054,23 @@ element と eventlistner を保持したままの syncer を、
         }
       }
       this.setEachColumnHash = setEachColumnHash;
+      */
       
       function setEachColumn(method, args) {
-        if(Array.isArray(args[0])) {
-          setEachColumnArray(method, args);
-        } else {
-          setEachColumnHash(method, args);
+        // 内部変数 _value を直接呼ぶので継承できない。
+        if(args.length == 0) { return; }
+        // argsは要素1つ以上のarguments object
+        
+        var x = fillKeyIntoArray2(args, this.keys);
+        var n = x.length;
+        for(var k in _value) {
+          if(n == 1 && x[0][k] === undefined) { continue; }
+          // 単独undefinedは、無効なデータとみなす。
+          var p = [];
+          for(var j = 0; j < n; j++) {
+            p.push(x[j][k]);
+          }
+          _value[k][method].apply(_value[k], p);
         }
       }
       this.setEachColumn = setEachColumn;
@@ -1124,6 +1150,106 @@ element と eventlistner を保持したままの syncer を、
       this.parseJSON = parseJSON;
     }
     this.table = KuroTable;
+    
+    function arrayToHash1(x, key) {
+      var n = Math.min(x.length, key.length);
+      var p = {}
+      for(var i = 0; i < n; i++) {
+        p[key[i]] = x[i];
+      }
+      return(p);
+    }
+    this.arrayToHash1 = arrayToHash1;
+    
+    function arrayToHash2(x, key) {
+      var m = x.length;
+      var n = key.length;
+      var q = []
+      for(var j = 0; j < m; j++) {
+        var p = {}
+        for(var i = 0; i < n; i++) {
+          p[key[i]] = x[j][i];
+        }
+        q.push(p);
+      }
+      return(q);
+    }
+    this.arrayToHash2 = arrayToHash2;
+    
+    function fillKeyIntoArray2(x, key) {
+      var m = x.length;
+      var q = []
+      for(var j = 0; j < m; j++) {
+        if(Array.isArray(x[j])) {
+          var n = Math.min(x[j].length, key.length);
+          var p = {}
+          for(var i = 0; i < n; i++) {
+            p[key[i]] = x[j][i];
+          }
+          q.push(p);
+        } else {
+          q.push(x[j]);
+        }
+      }
+      return(q);
+    }
+    this.fillKeyIntoArray2 = fillKeyIntoArray2;
+    
+    function transposeArray(x) {
+      var n = x.length;
+      var m = 0;
+      for(var i = 0; i < n; i++) {
+        m = Math.max(m, x[i].length);
+      }
+      var q = []
+      for(var j = 0; j < m; j++) {
+        var p = []
+        for(var i = 0; i < n; i++) {
+          p.push(x[i][j]);
+        }
+        q.push(p);
+      }
+      return(q);
+    }
+    this.transposeArray = transposeArray;
+    
+    function transposeHashArray(x) {
+      var m = 0;
+      for(var k in x) {
+        m = Math.max(m, x[k].length);
+      }
+      var q = []
+      for(var j = 0; j < m; j++) {
+        var p = {}
+        for(var k in x) {
+          var r = x[k][j];
+          if(r !== undefined) {
+            p[k] = r;
+          }
+        }
+        q.push(p);
+      }
+      return(q);
+    }
+    this.transposeHashArray = transposeHashArray;
+    
+    function transposeArrayHash(x) {
+      var n = x.length;
+      var q = {}
+      for(var i = 0; i < n; i++) {
+        for(var k in x[i]) {
+          if(q[k] === undefined) {
+            q[k] = [];
+            for(var j = 0; j < i; j++) {
+              q[k].push(undefined);
+            }
+          }
+          q[k].push(x[i][k]);
+        }
+      }
+      return(q);
+    }
+    this.transposeArrayHash = transposeArrayHash;
     
     /*############################
     KuroRow / this.row

@@ -37,6 +37,12 @@ describe('Kuro_base', function(){
     expect(Kuro_base).itself.to.respondTo('transcribeString');
     expect(Kuro_base).itself.to.respondTo('escapeString');
     expect(Kuro_base).itself.to.respondTo('unescapeString');
+    expect(Kuro_base).itself.to.respondTo('arrayToHash1');
+    expect(Kuro_base).itself.to.respondTo('arrayToHash2');
+    expect(Kuro_base).itself.to.respondTo('fillKeyIntoArray2');
+    expect(Kuro_base).itself.to.respondTo('transposeArray');
+    expect(Kuro_base).itself.to.respondTo('transposeHashArray');
+    expect(Kuro_base).itself.to.respondTo('transposeArrayHash');
   });
 });
 
@@ -622,7 +628,7 @@ describe('Kuro_base.list', function(){
         expect(x).to.have.property('value');
         expect(x).to.have.property('type', 'number');
         expect(x).to.have.property('length', 0);
-        expect(x).to.have.property('defaultValue', 0);
+        expect(x).to.have.property('defaultValue', undefined);
         expect(x).to.have.property('defaultType', 'number');
         expect(x).to.have.property('factories');
         expect(x).to.have.property('factory');
@@ -635,6 +641,7 @@ describe('Kuro_base.list', function(){
         expect(x).to.respondTo('resetByValues');
         expect(x).to.respondTo('updateValues');
         expect(x).to.respondTo('updateValueAt');
+        expect(x).to.respondTo('updateEachDefaultValue');
         expect(x).to.respondTo('updateLength');
         expect(x).to.respondTo('increase');
         expect(x).to.respondTo('decrease');
@@ -882,6 +889,11 @@ describe('Kuro_base.list', function(){
         x.increase(2);
         expect(x.value).to.deep.equal([4,5,12,12]);
       });
+      it('should not affect children with the undefined default value', function(){
+        x.defaultValue = undefined;
+        expect(x.defaultValue).to.equal(undefined);
+        expect(x.each(function(o){ return o.defaultValue; })).to.deep.equal([12,12,12,12]);
+      });
       it('should return ordinal numbers as keys', function(){
         x.resetByLength(4);
         expect(x.keys).to.deep.equal([0,1,2,3]);
@@ -1111,8 +1123,6 @@ describe('Kuro_base.table', function(){
         expect(x).to.respondTo('parseColumn');
         expect(x).to.respondTo('eachColumnArray');
         expect(x).to.respondTo('eachColumnHash');
-        expect(x).to.respondTo('setEachColumnArray');
-        expect(x).to.respondTo('setEachColumnHash');
         expect(x).to.respondTo('setEachColumn');
         expect(x).to.respondTo('toString');
         expect(x).to.respondTo('toJSON');
@@ -1196,7 +1206,133 @@ describe('Kuro_base.table', function(){
           force: ['far','far','away','ago','in','a','galaxy'],
           sequence: [8,9,10,0,2,3,7]
         });
+        expect(x.keys).to.deep.equal(['force','sequence']);
+        x.updateValues([
+          ['A','long','time'],
+          [4,5,6,1]
+        ]);
+        expect(x.value).to.deep.equal({
+          force: ['A','long','time','ago','in','a','galaxy'],
+          sequence: [4,5,6,1,2,3,7]
+        });
       });
     });
+  });
+});
+
+describe('Kuro_base.arrayToHash1', function(){
+  it('should be a function', function(){
+    expect(Kuro_base.arrayToHash1).to.be.a('function');
+  });
+  it('should convert array to hash object', function(){
+    expect(Kuro_base.arrayToHash1(
+      [[1,2,3],[4,5,6,7]], ['a','b']
+    )).to.deep.equal(
+      {a:[1,2,3],b:[4,5,6,7]}
+    );
+    expect(Kuro_base.arrayToHash1(
+      [[1,2,3],[4,5,6,7]], ['a','b','c']
+    )).to.deep.equal(
+      {a:[1,2,3],b:[4,5,6,7]}
+    );
+    expect(Kuro_base.arrayToHash1(
+      [[1,2,3],[4,5,6,7],[8,9]], ['a','b']
+    )).to.deep.equal(
+      {a:[1,2,3],b:[4,5,6,7]}
+    );
+  });
+});
+
+describe('Kuro_base.arrayToHash2', function(){
+  it('should be a function', function(){
+    expect(Kuro_base.arrayToHash2).to.be.a('function');
+  });
+  it('should convert array to hash object at the second layer', function(){
+    expect(Kuro_base.arrayToHash2(
+      [[1,2,3],[4,5,6,7]], ['a','b','c']
+    )).to.deep.equal(
+      [{a:1,b:2,c:3},{a:4,b:5,c:6}]
+    );
+  });
+  it('should convert array to hash object at the second layer', function(){
+    expect(Kuro_base.arrayToHash2(
+      [[1,2,3],[4,5]], ['a','b','c']
+    )).to.deep.equal(
+      [{a:1,b:2,c:3},{a:4,b:5,c:undefined}]
+    );
+  });
+});
+
+
+describe('Kuro_base.fillKeyIntoArray2', function(){
+  it('should be a function', function(){
+    expect(Kuro_base.fillKeyIntoArray2).to.be.a('function');
+  });
+  it('should convert array to hash object at the second layer if required', function(){
+    expect(Kuro_base.fillKeyIntoArray2(
+      [[1,2,3],{a:10,e:20},[4,5,6,7]], ['a','b','c']
+    )).to.deep.equal(
+      [{a:1,b:2,c:3},{a:10,e:20},{a:4,b:5,c:6}]
+    );
+  });
+  it('should convert array to hash object at the second layer if required', function(){
+    expect(Kuro_base.fillKeyIntoArray2(
+      [[1,2,3],[4,5]], ['a','b','c']
+    )).to.deep.equal(
+      [{a:1,b:2,c:3},{a:4,b:5}]
+    );
+  });
+});
+
+describe('Kuro_base.transposeArray', function(){
+  it('should be a function', function(){
+    expect(Kuro_base.transposeArray).to.be.a('function');
+  });
+  it('should transpose matrix array', function(){
+    expect(Kuro_base.transposeArray(
+      [[1,2,3],[4,5,6,7]]
+    )).to.deep.equal(
+      [[1,4],[2,5],[3,6],[undefined,7]]
+    );
+  });
+});
+
+describe('Kuro_base.transposeHashArray', function(){
+  it('should be a function', function(){
+    expect(Kuro_base.transposeHashArray).to.be.a('function');
+  });
+  it('should transpose Hash-Array to Array-Hash', function(){
+    expect(Kuro_base.transposeHashArray(
+      {a:[1,2,3], b:[4,5,6,7]}
+    )).to.deep.equal(
+      [{a:1,b:4},{a:2,b:5},{a:3,b:6},{b:7}]
+    );
+  });
+  it('should transpose Hash-Array to Array-Hash', function(){
+    expect(Kuro_base.transposeHashArray(
+      {a:[1,2,3], b:[4,5,6,7], c:[undefined,undefined,undefined,undefined,8]}
+    )).to.deep.equal(
+      [{a:1,b:4},{a:2,b:5},{a:3,b:6},{b:7},{c:8}]
+    );
+  });
+});
+
+describe('Kuro_base.transposeArrayHash', function(){
+  it('should be a function', function(){
+    expect(Kuro_base.transposeArrayHash).to.be.a('function');
+  });
+  it('should transpose Array-Hash to Hash-Array', function(){
+    expect(Kuro_base.transposeArrayHash(
+      [{a:1,b:4},{a:2,b:5},{a:3,b:6},{b:7}]
+    )).to.deep.equal(
+      {a:[1,2,3], b:[4,5,6,7]}
+    );
+  });
+  it('should transpose Array-Hash to Hash-Array', function(){
+    expect(Kuro_base.transposeArrayHash(
+      [{a:1,b:4},{a:2,b:5},{a:3,b:6},{b:7},{c:8}]
+    )).to.deep.equal(
+      {a:[1,2,3], b:[4,5,6,7], c:[undefined,undefined,undefined,undefined,8]}
+    );
   });
 });
